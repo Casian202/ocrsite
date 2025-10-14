@@ -433,18 +433,22 @@ def _run_with_ocrmypdf(job: OcrJob) -> None:
         if sidecar_requested:
             ocr_kwargs['sidecar'] = str(sidecar_path)
 
+        handled_exceptions = [
+            ocrmypdf_exceptions.MissingDependencyError,
+            ocrmypdf_exceptions.PriorOcrFoundError,
+        ]
+        for attr in ('SubprocessOutputError', 'OcrError', 'ExitCodeError'):
+            exc_cls = getattr(ocrmypdf_exceptions, attr, None)
+            if exc_cls is not None and exc_cls not in handled_exceptions:
+                handled_exceptions.append(exc_cls)
+
         try:
             ocrmypdf.ocr(
                 str(input_path),
                 str(output_path),
                 **ocr_kwargs,
             )
-        except (
-            ocrmypdf_exceptions.MissingDependencyError,
-            ocrmypdf_exceptions.PriorOcrFoundError,
-            getattr(ocrmypdf_exceptions, 'SubprocessOutputError', ocrmypdf_exceptions.OcrError),
-            ocrmypdf_exceptions.OcrError,
-        ) as exc:
+        except tuple(handled_exceptions) as exc:  # type: ignore[arg-type]
             log.exception('OCR failed for job %s', job.id)
             raise RuntimeError(str(exc)) from exc
 
