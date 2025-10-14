@@ -11,12 +11,12 @@
         {{ form.non_field_errors }}
         <div class="form-field">
             <label for="{{ form.username.id_for_label }}">Utilizator</label>
-            {{ form.username }}
+            {{ form.username.as_widget(attrs={'class': 'input-control'}) }}
             {{ form.username.errors }}
         </div>
         <div class="form-field">
             <label for="{{ form.password.id_for_label }}">Parola</label>
-            {{ form.password }}
+            {{ form.password.as_widget(attrs={'class': 'input-control'}) }}
             {{ form.password.errors }}
         </div>
         <div class="form-actions">
