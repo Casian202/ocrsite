@@ -137,9 +137,10 @@ a:hover {
 }
 
 .main-nav {
-    flex: 1 1 320px;
+    flex: 2 1 520px;
     display: flex;
     justify-content: center;
+    min-width: min(100%, 520px);
 }
 
 .main-nav ul {
@@ -212,8 +213,9 @@ a:hover {
 }
 
 .theme-switch {
-    gap: 0.35rem;
-    padding: 0.35rem 0.85rem;
+    gap: 0.3rem;
+    padding: 0.35rem 0.7rem;
+    min-width: 0;
 }
 
 .theme-switch__icon {

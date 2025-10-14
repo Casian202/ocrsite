@@ -68,6 +68,57 @@ Aplicatia este disponibila la `http://localhost:8000/`. Pagina de autentificare 
 - `templates/` – layout global si pagini pentru autentificare si panou.
 - `static/` – fisiere CSS pentru interfata.
 - `media/uploads/`, `media/processed/` – directoare create automat de Django pentru fisierele incarcate si rezultatele OCR.
+- `deploy/nginx/` – configuratia nginx folosita de docker compose pentru a servi aplicatia si fisierele statice.
+
+## Docker pe Ubuntu 24.04
+
+1. Instaleaza Docker Engine si Docker Compose Plugin (pe Ubuntu 24.04):
+
+   ```bash
+   sudo apt update
+   sudo apt install docker.io docker-compose-plugin
+   sudo systemctl enable --now docker
+   ```
+
+2. Cloneaza proiectul si pregateste variabilele de mediu:
+
+   ```bash
+   git clone <repo>
+   cd ocrsite
+   cp .env.example .env
+   touch db.sqlite3
+   ```
+
+   > Editeaza `.env` pentru a seta `DJANGO_SECRET_KEY`, lista de domenii acceptate (`DJANGO_ALLOWED_HOSTS`), baza URL a site-ului (`SITE_BASE_URL`) si origini de incredere pentru CSRF (`CSRF_TRUSTED_ORIGINS`).
+
+3. (Optional) Instaleaza Docling pentru a folosi motorul alternativ:
+
+   ```bash
+   pip install docling
+   ```
+
+   > Daca Docling nu este instalat, optiunea ramane indisponibila in consola de administrare.
+
+4. Porneste serviciile (aplicatie Django + proxy nginx):
+
+   ```bash
+   docker compose up --build -d
+   ```
+
+   Serviciul `web` ruleaza `gunicorn` pe portul intern `8000`, iar nginx expune acelasi port catre gazda, servind resursele statice si media din volumele partajate.
+
+5. Verifica log-urile si statusul:
+
+   ```bash
+   docker compose logs -f
+   docker compose ps
+   ```
+
+6. Opreste serviciul:
+
+   ```bash
+   docker compose down
+   ```
 
 ## Docker pe Ubuntu 24.04
 

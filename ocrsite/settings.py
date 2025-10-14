@@ -53,7 +53,25 @@ for host in ALLOWED_HOSTS:
         _trusted_origins.append(f"https://{host}")
         _trusted_origins.append(f"http://{host}")
 
-CSRF_TRUSTED_ORIGINS = _trusted_origins
+_env_csrf = os.environ.get('CSRF_TRUSTED_ORIGINS') or os.environ.get('CSRD_TRUSTED_ORIGINS')
+if _env_csrf:
+    parsed = [origin.strip() for origin in _env_csrf.split(',') if origin.strip()]
+    if parsed:
+        CSRF_TRUSTED_ORIGINS = parsed
+    else:
+        CSRF_TRUSTED_ORIGINS = _trusted_origins
+else:
+    CSRF_TRUSTED_ORIGINS = _trusted_origins
+
+_preferred_host = next((host for host in ALLOWED_HOSTS if host not in {'localhost', '127.0.0.1'}), None)
+if _preferred_host:
+    default_scheme = 'https'
+    default_host = _preferred_host
+else:
+    default_scheme = 'http'
+    default_host = ALLOWED_HOSTS[0] if ALLOWED_HOSTS else 'localhost'
+
+SITE_BASE_URL = os.environ.get('SITE_BASE_URL', f"{default_scheme}://{default_host}")
 
 
 # Application definition
@@ -150,7 +168,7 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/5.2/howto/static-files/
 
-STATIC_URL = 'static/'
+STATIC_URL = os.environ.get('STATIC_URL', '/static/')
 STATICFILES_DIRS = [BASE_DIR / 'static']
 STATIC_ROOT = BASE_DIR / 'staticfiles'
 
@@ -160,8 +178,8 @@ if WHITENOISE_AVAILABLE:
 else:
     STATICFILES_STORAGE = 'django.contrib.staticfiles.storage.StaticFilesStorage'
 
-MEDIA_URL = 'media/'
-MEDIA_ROOT = BASE_DIR / 'media'
+MEDIA_URL = os.environ.get('MEDIA_URL', '/media/')
+MEDIA_ROOT = Path(os.environ.get('MEDIA_ROOT', BASE_DIR / 'media'))
 
 LOGIN_URL = 'login'
 LOGIN_REDIRECT_URL = 'portal:home'

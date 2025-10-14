@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from django.conf import settings
+
 from .constants import MENU_CHOICES
 from .models import PortalAccess, PortalSettings
 
@@ -28,4 +30,5 @@ def portal_navigation(request):
         'portal_access': access,
         'portal_menu_items': available_menus,
         'portal_settings': PortalSettings.load(),
+        'site_base_url': getattr(settings, 'SITE_BASE_URL', ''),
     }

@@ -534,7 +534,7 @@ def _run_with_docling(job: OcrJob) -> None:
         if not text_content:
             text_content = 'Nu a fost posibilă extragerea textului cu Docling.'
 
-        if job.options.get('make_sidecar'):
+        if options.get('make_sidecar'):
             sidecar_path.write_text(text_content, encoding='utf-8', errors='ignore')
             with sidecar_path.open('rb') as sidecar_stream:
                 job.sidecar_file.save(
@@ -573,9 +573,18 @@ def _markdown_to_plain_text(markdown_text: str) -> str:
     return '\n'.join(cleaned_lines)
 
 
-def _generate_docx(user, title: str, body: str) -> WordDocument:
-    from docx import Document
+def _load_docx_document():
+    try:
+        from docx import Document
+    except ImportError as exc:  # pragma: no cover
+        raise RuntimeError(
+            'Librăria python-docx nu este instalată. Adaugă „python-docx” în dependențe pentru a genera documente Word.'
+        ) from exc
+    return Document
 
+
+def _generate_docx(user, title: str, body: str) -> WordDocument:
+    Document = _load_docx_document()
     document = Document()
     document.add_heading(title, level=1)
     if body:
@@ -592,8 +601,7 @@ def _generate_docx(user, title: str, body: str) -> WordDocument:
 
 
 def _convert_pdf_to_word(user, title: str, pdf_file) -> WordDocument:
-    from docx import Document
-
+    Document = _load_docx_document()
     job = OcrJob(user=user, status=OcrJob.Status.PROCESSING, options={'make_sidecar': True})
     job.source_file.save(pdf_file.name, pdf_file, save=False)
     job.save()
