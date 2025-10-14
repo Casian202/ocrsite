@@ -472,12 +472,6 @@ def _run_with_ocrmypdf(job: OcrJob) -> None:
         update_fields=['processed_file', 'sidecar_file', 'status', 'error_message', 'updated_at']
     )
 
-        job.status = OcrJob.Status.COMPLETED
-        job.error_message = ''
-        job.save(
-            update_fields=['processed_file', 'sidecar_file', 'status', 'error_message', 'updated_at']
-        )
-
 def _run_with_docling(job: OcrJob) -> None:
     try:
         from docling.document_converter import DocumentConverter
