@@ -487,6 +487,7 @@ def _run_with_docling(job: OcrJob) -> None:
         ) from exc
 
     job.ensure_directories()
+    options = job.options or {}
 
     with tempfile.TemporaryDirectory() as temp_dir:
         temp_dir_path = Path(temp_dir)

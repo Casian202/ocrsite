@@ -113,7 +113,7 @@ a:hover {
     top: 0;
     z-index: 20;
     gap: 1.5rem;
-    flex-wrap: wrap;
+    flex-wrap: nowrap;
 }
 
 .app-logo {
@@ -137,7 +137,7 @@ a:hover {
 }
 
 .main-nav {
-    flex: 2 1 520px;
+    flex: 1 1 auto;
     display: flex;
     justify-content: center;
     min-width: min(100%, 520px);
@@ -174,7 +174,7 @@ a:hover {
     flex-wrap: wrap;
     justify-content: flex-end;
     row-gap: 0.4rem;
-    flex-shrink: 0;
+    flex: 0 0 auto;
 }
 
 .account-actions__user {
@@ -713,3 +713,18 @@ textarea.input-control,
         display: none;
     }
 }
+.theme-switch {
+    padding-inline: 0.75rem;
+    min-width: 0;
+}
+
+.theme-switch__icon {
+    font-size: 1rem;
+    line-height: 1;
+}
+
+.theme-switch__label {
+    margin-left: 0.4rem;
+    white-space: nowrap;
+}
+
