@@ -10,6 +10,25 @@
     </div>
 </section>
 
+<section class="card admin-settings-card">
+    <h2>Setări motor OCR</h2>
+    <p class="muted">Motorul curent: <strong>{{ portal_settings.get_ocr_engine_display }}</strong></p>
+    <form method="post" class="form-grid">
+        {% csrf_token %}
+        <input type="hidden" name="form_name" value="settings">
+        {{ settings_form.non_field_errors }}
+        <div class="form-field">
+            {{ settings_form.ocr_engine.label_tag }}
+            {{ settings_form.ocr_engine }}
+            <small class="help-text">{{ settings_form.ocr_engine.help_text }}</small>
+            {{ settings_form.ocr_engine.errors }}
+        </div>
+        <div class="form-actions">
+            <button type="submit" class="primary-button">Salvează setarea</button>
+        </div>
+    </form>
+</section>
+
 <section class="admin-console">
     <aside class="admin-console__list">
         <h2>Utilizatori</h2>
@@ -29,6 +48,7 @@
             <h2>Editează: {{ selected_access.user.username }}</h2>
             <form method="post">
                 {% csrf_token %}
+                <input type="hidden" name="form_name" value="access">
                 {{ form.non_field_errors }}
                 <div class="form-field">
                     {{ form.status.label_tag }}

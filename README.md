@@ -7,6 +7,7 @@ Interfata web simpla pentru procesarea PDF-urilor cu OCRmyPDF pe Ubuntu 24.04. A
 - integrare OCRmyPDF cu pastrarea rezultatului si optiuni de descarcare;
 - istoric al conversiilor salvate in baza de date;
 - interfata moderna optimizata pentru mobil, cu comutator intre tema luminoasa si intunecata.
+- suport pentru alegerea motorului OCR (OCRmyPDF sau Docling) direct din consola web de administrare.
 
 ## Cerinte de sistem
 
@@ -59,6 +60,8 @@ Aplicatia este disponibila la `http://localhost:8000/`. Pagina de autentificare 
 
 > In cazul unei erori (de exemplu depedente lipsa), mesajul este afisat in interfata si salvat in baza de date.
 
+> Administratorii pot schimba motorul folosit pentru OCR (OCRmyPDF sau Docling) din meniul „Consolă administrator”. Optiunea Docling devine activa doar daca pachetul este instalat pe server.
+
 ## Structura
 
 - `portal/` – aplicatia Django cu modele, formulare, views si URL-uri.
@@ -87,7 +90,15 @@ Aplicatia este disponibila la `http://localhost:8000/`. Pagina de autentificare 
 
    > Editeaza `.env` pentru a seta `DJANGO_SECRET_KEY` si lista de domenii acceptate (`DJANGO_ALLOWED_HOSTS`).
 
-3. Porneste serviciul:
+3. (Optional) Instaleaza Docling pentru a folosi motorul alternativ:
+
+   ```bash
+   pip install docling
+   ```
+
+   > Daca Docling nu este instalat, optiunea ramane indisponibila in consola de administrare.
+
+4. Porneste serviciul:
 
    ```bash
    docker compose up --build -d
@@ -95,14 +106,14 @@ Aplicatia este disponibila la `http://localhost:8000/`. Pagina de autentificare 
 
    Containerul ruleaza `gunicorn` pe portul `8000` si monteaza directoarele `media/` si fisierul `db.sqlite3` pentru persistenta.
 
-4. Verifica log-urile si statusul:
+5. Verifica log-urile si statusul:
 
    ```bash
    docker compose logs -f
    docker compose ps
    ```
 
-5. Opreste serviciul:
+6. Opreste serviciul:
 
    ```bash
    docker compose down

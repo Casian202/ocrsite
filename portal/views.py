@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import logging
+import re
 import shutil
 import tempfile
 from pathlib import Path
@@ -19,10 +20,18 @@ from .forms import (
     LibraryDocumentForm,
     OcrRequestForm,
     PdfToWordForm,
+    PortalSettingsForm,
     SignUpForm,
     WordDocumentForm,
 )
-from .models import LibraryFolder, OcrJob, PortalAccess, StoredDocument, WordDocument
+from .models import (
+    LibraryFolder,
+    OcrJob,
+    PortalAccess,
+    PortalSettings,
+    StoredDocument,
+    WordDocument,
+)
 
 log = logging.getLogger(__name__)
 
@@ -88,13 +97,17 @@ def ocr_studio(request):
         return redirect('portal:ocr')
 
     jobs = OcrJob.objects.filter(user=request.user)[:25]
+    settings_obj = PortalSettings.load()
+    engine_key = settings_obj.ocr_engine or PortalSettings.OcrEngine.OCRMYPDF
+    engine_label = settings_obj.get_ocr_engine_display()
     ocrmypdf_version = None
-    try:
-        import ocrmypdf
+    if engine_key == PortalSettings.OcrEngine.OCRMYPDF:
+        try:
+            import ocrmypdf
 
-        ocrmypdf_version = ocrmypdf.__version__
-    except Exception:  # pragma: no cover - optional metadata
-        ocrmypdf_version = None
+            ocrmypdf_version = ocrmypdf.__version__
+        except Exception:  # pragma: no cover - optional metadata
+            ocrmypdf_version = None
     return render(
         request,
         'portal/ocr_studio.html',
@@ -102,6 +115,9 @@ def ocr_studio(request):
             'form': form,
             'jobs': jobs,
             'ocrmypdf_version': ocrmypdf_version,
+            'engine_label': engine_label,
+            'engine_key': engine_key,
+            'docling_available': PortalSettings.docling_available(),
         },
     )
 
@@ -205,6 +221,7 @@ def download_document(request, document_id):
 def word_studio(request):
     create_form = WordDocumentForm(request.POST or None)
     convert_form = PdfToWordForm(request.POST or None, request.FILES or None)
+    settings_obj = PortalSettings.load()
 
     if request.method == 'POST':
         if 'create_word' in request.POST and create_form.is_valid():
@@ -236,6 +253,8 @@ def word_studio(request):
             'create_form': create_form,
             'convert_form': convert_form,
             'documents': documents,
+            'engine_label': settings_obj.get_ocr_engine_display(),
+            'engine_key': settings_obj.ocr_engine,
         },
     )
 
@@ -286,10 +305,30 @@ def admin_console(request):
     selected_id = request.GET.get('access_id')
     selected_access = None
     form = None
+    settings_obj = PortalSettings.load()
+    settings_form = PortalSettingsForm(
+        request.POST if request.method == 'POST' and request.POST.get('form_name') == 'settings' else None,
+        instance=settings_obj,
+        prefix='settings',
+    )
+
+    if request.method == 'POST' and request.POST.get('form_name') == 'settings':
+        settings_form = PortalSettingsForm(
+            request.POST,
+            instance=settings_obj,
+            prefix='settings',
+        )
+        if settings_form.is_valid():
+            settings_form.save()
+            messages.success(
+                request,
+                f"Motorul OCR implicit a fost schimbat în {settings_form.instance.get_ocr_engine_display()}.",
+            )
+            return redirect('portal:admin')
 
     if selected_id:
         selected_access = get_object_or_404(PortalAccess, id=selected_id)
-        if request.method == 'POST':
+        if request.method == 'POST' and request.POST.get('form_name') == 'access':
             form = AccessApprovalForm(request.POST, instance=selected_access)
             if form.is_valid():
                 access = form.save(commit=False)
@@ -311,11 +350,48 @@ def admin_console(request):
             'access_list': access_list,
             'selected_access': selected_access,
             'form': form,
+            'settings_form': settings_form,
+            'portal_settings': settings_obj,
         },
     )
 
 
 def _run_ocr(job: OcrJob) -> None:
+    settings_obj = PortalSettings.load()
+    engine = settings_obj.ocr_engine or PortalSettings.OcrEngine.OCRMYPDF
+    options = job.options or {}
+    options['engine'] = engine
+    job.options = options
+    job.save(update_fields=['options'])
+
+    if engine == PortalSettings.OcrEngine.DOCLING:
+        _run_with_docling(job)
+    else:
+        _run_with_ocrmypdf(job)
+
+    if job.destination_folder and job.status == OcrJob.Status.COMPLETED:
+        stored = StoredDocument(
+            folder=job.destination_folder,
+            ocr_job=job,
+            title=Path(job.source_file.name).stem,
+        )
+        with job.source_file.open('rb') as original_stream:
+            stored.original_file.save(
+                Path(job.source_file.name).name,
+                File(original_stream),
+                save=False,
+            )
+        if job.processed_file:
+            with job.processed_file.open('rb') as processed_stream:
+                stored.processed_file.save(
+                    job.processed_filename(),
+                    File(processed_stream),
+                    save=False,
+                )
+        stored.save()
+
+
+def _run_with_ocrmypdf(job: OcrJob) -> None:
     try:
         import ocrmypdf
         from ocrmypdf import exceptions as ocrmypdf_exceptions
@@ -366,7 +442,7 @@ def _run_ocr(job: OcrJob) -> None:
         except (
             ocrmypdf_exceptions.MissingDependencyError,
             ocrmypdf_exceptions.PriorOcrFoundError,
-            ocrmypdf_exceptions.SubprocessError,
+            getattr(ocrmypdf_exceptions, 'SubprocessOutputError', ocrmypdf_exceptions.OcrError),
             ocrmypdf_exceptions.OcrError,
         ) as exc:
             log.exception('OCR failed for job %s', job.id)
@@ -386,6 +462,15 @@ def _run_ocr(job: OcrJob) -> None:
                     File(sidecar_stream),
                     save=False,
                 )
+        elif job.sidecar_file:
+            job.sidecar_file.delete(save=False)
+            job.sidecar_file = None
+
+    job.status = OcrJob.Status.COMPLETED
+    job.error_message = ''
+    job.save(
+        update_fields=['processed_file', 'sidecar_file', 'status', 'error_message', 'updated_at']
+    )
 
         job.status = OcrJob.Status.COMPLETED
         job.error_message = ''
@@ -393,26 +478,99 @@ def _run_ocr(job: OcrJob) -> None:
             update_fields=['processed_file', 'sidecar_file', 'status', 'error_message', 'updated_at']
         )
 
-        if job.destination_folder:
-            stored = StoredDocument(
-                folder=job.destination_folder,
-                ocr_job=job,
-                title=Path(job.source_file.name).stem,
-            )
-            with job.source_file.open('rb') as original_stream:
-                stored.original_file.save(
-                    Path(job.source_file.name).name,
-                    File(original_stream),
+def _run_with_docling(job: OcrJob) -> None:
+    try:
+        from docling.document_converter import DocumentConverter
+    except ImportError as exc:  # pragma: no cover
+        raise RuntimeError(
+            'Docling nu este instalat. Instalează pachetul „docling” pentru a folosi acest motor.'
+        ) from exc
+
+    job.ensure_directories()
+
+    with tempfile.TemporaryDirectory() as temp_dir:
+        temp_dir_path = Path(temp_dir)
+        input_path = temp_dir_path / 'input.pdf'
+        output_path = temp_dir_path / 'output.pdf'
+        sidecar_path = temp_dir_path / 'sidecar.txt'
+
+        with job.source_file.open('rb') as uploaded, input_path.open('wb') as destination:
+            shutil.copyfileobj(uploaded, destination)
+
+        converter = DocumentConverter()
+        result = converter.convert(str(input_path))
+        document = getattr(result, 'document', None)
+        if document is None:
+            raise RuntimeError('Docling nu a putut procesa documentul furnizat.')
+
+        pdf_bytes = getattr(result, 'pdf_bytes', None)
+        if pdf_bytes:
+            with output_path.open('wb') as pdf_out:
+                pdf_out.write(pdf_bytes)
+        elif hasattr(document, 'export_to_pdf'):
+            exported_pdf = document.export_to_pdf()
+            if isinstance(exported_pdf, (bytes, bytearray)):
+                with output_path.open('wb') as pdf_out:
+                    pdf_out.write(exported_pdf)
+            else:
+                shutil.copyfile(input_path, output_path)
+        else:
+            shutil.copyfile(input_path, output_path)
+
+        text_content = ''
+        if hasattr(document, 'export_to_markdown'):
+            text_content = _markdown_to_plain_text(document.export_to_markdown())
+        elif hasattr(document, 'export_to_text'):
+            text_content = str(document.export_to_text())
+        elif hasattr(document, 'pages'):
+            lines = []
+            for page in getattr(document, 'pages', []):
+                page_text = getattr(page, 'text', '')
+                if page_text:
+                    lines.append(page_text)
+            text_content = '\n'.join(lines)
+
+        text_content = text_content.strip()
+        if not text_content:
+            text_content = 'Nu a fost posibilă extragerea textului cu Docling.'
+
+        if job.options.get('make_sidecar'):
+            sidecar_path.write_text(text_content, encoding='utf-8', errors='ignore')
+            with sidecar_path.open('rb') as sidecar_stream:
+                job.sidecar_file.save(
+                    f"{Path(job.source_file.name).stem}.txt",
+                    File(sidecar_stream),
                     save=False,
                 )
-            if job.processed_file:
-                with job.processed_file.open('rb') as processed_stream:
-                    stored.processed_file.save(
-                        job.processed_filename(),
-                        File(processed_stream),
-                        save=False,
-                    )
-            stored.save()
+        elif job.sidecar_file:
+            job.sidecar_file.delete(save=False)
+            job.sidecar_file = None
+
+        with output_path.open('rb') as processed:
+            job.processed_file.save(
+                f"{Path(job.source_file.name).stem}_docling.pdf",
+                File(processed),
+                save=False,
+            )
+
+    job.status = OcrJob.Status.COMPLETED
+    job.error_message = ''
+    job.save(
+        update_fields=['processed_file', 'sidecar_file', 'status', 'error_message', 'updated_at']
+    )
+
+
+def _markdown_to_plain_text(markdown_text: str) -> str:
+    cleaned_lines = []
+    for raw_line in markdown_text.splitlines():
+        line = raw_line.strip()
+        if not line:
+            cleaned_lines.append('')
+            continue
+        line = re.sub(r'^[#>*\-\d\.\s]+', '', line)
+        line = line.replace('**', '').replace('*', '').replace('_', '')
+        cleaned_lines.append(line.strip())
+    return '\n'.join(cleaned_lines)
 
 
 def _generate_docx(user, title: str, body: str) -> WordDocument:

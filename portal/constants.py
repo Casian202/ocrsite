@@ -23,6 +23,12 @@ MENU_CHOICES = [
 ]
 
 
+OCR_ENGINE_CHOICES = [
+    ('ocrmypdf', 'OCRmyPDF'),
+    ('docling', 'Docling'),
+]
+
+
 FOLDER_COLOR_CHOICES = [
     ('mint', 'Mint Green'),
     ('sage', 'Sage Gray'),

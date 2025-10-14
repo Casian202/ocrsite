@@ -1,11 +1,49 @@
+import importlib.util
 import uuid
 from pathlib import Path
 
 from django.contrib.auth import get_user_model
 from django.core.files.storage import default_storage
-from django.db import models
+from django.db import DatabaseError, models
 
-from .constants import FOLDER_COLOR_CHOICES, LANGUAGE_LOOKUP, MENU_CHOICES
+from .constants import FOLDER_COLOR_CHOICES, LANGUAGE_LOOKUP, MENU_CHOICES, OCR_ENGINE_CHOICES
+
+
+class PortalSettings(models.Model):
+    class OcrEngine(models.TextChoices):
+        OCRMYPDF = 'ocrmypdf', 'OCRmyPDF'
+        DOCLING = 'docling', 'Docling'
+
+    id = models.PositiveSmallIntegerField(primary_key=True, default=1, editable=False)
+    ocr_engine = models.CharField(
+        max_length=32,
+        choices=OCR_ENGINE_CHOICES,
+        default=OcrEngine.OCRMYPDF,
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name_plural = 'Portal settings'
+
+    def __str__(self) -> str:
+        return 'Portal settings'
+
+    @classmethod
+    def load(cls) -> 'PortalSettings':
+        try:
+            settings, _ = cls.objects.get_or_create(
+                pk=1,
+                defaults={'ocr_engine': cls.OcrEngine.OCRMYPDF},
+            )
+            return settings
+        except DatabaseError:
+            # The table is not ready yet (e.g., during initial migration).
+            return cls(ocr_engine=cls.OcrEngine.OCRMYPDF)
+
+    @staticmethod
+    def docling_available() -> bool:
+        return importlib.util.find_spec('docling') is not None
 
 
 class PortalAccess(models.Model):

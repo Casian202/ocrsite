@@ -6,9 +6,21 @@
 <section class="section-header">
     <div>
         <h1>OCR Studio</h1>
-        <p>Procesează PDF-uri cu OCRmyPDF și accesează toate opțiunile avansate, inclusiv detectarea automată a limbilor.</p>
+        <p>Procesează PDF-uri folosind motorul <strong>{{ engine_label }}</strong> selectat de administrator.</p>
+        {% if engine_key == 'docling' %}
+            <p class="muted">Opțiunile avansate sunt interpretate de Docling. Unele setări pot fi ignorate de acest motor.</p>
+            {% if not docling_available %}
+                <p class="error-text">Docling nu este instalat în mediul curent. Cere administratorului să instaleze pachetul <code>docling</code>.</p>
+            {% endif %}
+        {% endif %}
     </div>
-    <div class="badge">OCRmyPDF {{ ocrmypdf_version|default:"" }}</div>
+    <div class="badge">
+        {% if engine_key == 'ocrmypdf' %}
+            OCRmyPDF {{ ocrmypdf_version|default:"" }}
+        {% else %}
+            Docling
+        {% endif %}
+    </div>
 </section>
 
 <section class="card-grid">

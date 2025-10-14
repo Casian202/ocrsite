@@ -7,6 +7,10 @@
     <div>
         <h1>Word Studio</h1>
         <p>Creează documente .docx sau convertește PDF-uri procesate în fișiere Word editabile.</p>
+        <p class="muted">Conversiile folosesc motorul <strong>{{ engine_label }}</strong> selectat în consola de administrare.</p>
+        {% if engine_key == 'docling' %}
+            <p class="muted">Textul extras poate fi diferit față de OCRmyPDF, iar formatările complexe pot fi simplificate.</p>
+        {% endif %}
     </div>
 </section>
 

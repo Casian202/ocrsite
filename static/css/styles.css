@@ -112,12 +112,15 @@ a:hover {
     position: sticky;
     top: 0;
     z-index: 20;
+    gap: 1.5rem;
+    flex-wrap: wrap;
 }
 
 .app-logo {
     display: flex;
     align-items: center;
     gap: 0.5rem;
+    flex-shrink: 0;
     font-weight: 700;
     color: var(--primary-dark);
 }
@@ -133,12 +136,20 @@ a:hover {
     font-size: 1.5rem;
 }
 
+.main-nav {
+    flex: 1 1 320px;
+    display: flex;
+    justify-content: center;
+}
+
 .main-nav ul {
     display: flex;
     list-style: none;
     gap: 1rem;
     margin: 0;
     padding: 0;
+    flex-wrap: wrap;
+    justify-content: center;
 }
 
 .main-nav a {
@@ -158,7 +169,11 @@ a:hover {
 .account-actions {
     display: flex;
     align-items: center;
-    gap: 0.75rem;
+    gap: 0.65rem;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    row-gap: 0.4rem;
+    flex-shrink: 0;
 }
 
 .account-actions__user {
@@ -198,6 +213,7 @@ a:hover {
 
 .theme-switch {
     gap: 0.35rem;
+    padding: 0.35rem 0.85rem;
 }
 
 .theme-switch__icon {
@@ -543,6 +559,14 @@ textarea.input-control,
     display: grid;
     gap: 1.5rem;
     grid-template-columns: minmax(220px, 280px) 1fr;
+}
+
+.admin-settings-card {
+    margin-bottom: 1.5rem;
+}
+
+.admin-settings-card .form-actions {
+    justify-content: flex-start;
 }
 
 .admin-console__list ul {

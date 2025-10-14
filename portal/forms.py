@@ -8,7 +8,7 @@ from django.contrib.auth.forms import UserCreationForm
 from django.core.validators import FileExtensionValidator
 
 from .constants import FOLDER_COLOR_CHOICES, LANGUAGE_CHOICES, MENU_CHOICES
-from .models import LibraryFolder, PortalAccess, StoredDocument, WordDocument
+from .models import LibraryFolder, PortalAccess, PortalSettings, StoredDocument, WordDocument
 
 
 class SignUpForm(UserCreationForm):
@@ -243,3 +243,29 @@ class AccessApprovalForm(forms.ModelForm):
     def clean_allowed_menus(self):
         menus = self.cleaned_data.get('allowed_menus') or []
         return list(menus)
+
+
+class PortalSettingsForm(forms.ModelForm):
+    class Meta:
+        model = PortalSettings
+        fields = ('ocr_engine',)
+        labels = {'ocr_engine': 'Motor OCR implicit'}
+        widgets = {'ocr_engine': forms.Select(attrs={'class': 'input-control'})}
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        help_text = 'Selectează motorul implicit folosit pentru OCR.'
+        if not PortalSettings.docling_available():
+            help_text = (
+                "Motorul Docling necesită instalarea pachetului `docling`."
+                " Momentan este dezactivat."
+            )
+        self.fields['ocr_engine'].help_text = help_text
+
+    def clean_ocr_engine(self):
+        engine = self.cleaned_data.get('ocr_engine')
+        if engine == PortalSettings.OcrEngine.DOCLING and not PortalSettings.docling_available():
+            raise forms.ValidationError(
+                'Instalează pachetul „docling” înainte de a activa acest motor.'
+            )
+        return engine

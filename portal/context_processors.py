@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from .constants import MENU_CHOICES
-from .models import PortalAccess
+from .models import PortalAccess, PortalSettings
 
 
 def portal_navigation(request):
@@ -27,4 +27,5 @@ def portal_navigation(request):
     return {
         'portal_access': access,
         'portal_menu_items': available_menus,
+        'portal_settings': PortalSettings.load(),
     }
