@@ -1,16 +1,72 @@
 :root {
+    color-scheme: light;
     --bg: #f3f6f4;
     --surface: #ffffff;
+    --surface-muted: rgba(255, 255, 255, 0.9);
     --primary: #3aa87c;
     --primary-dark: #2f8361;
+    --primary-soft: rgba(58, 168, 124, 0.16);
     --accent: #7b61ff;
+    --accent-soft: rgba(123, 97, 255, 0.1);
     --text: #1c1f1d;
     --muted: #6a6f6b;
     --border: rgba(28, 31, 29, 0.08);
+    --divider-strong: rgba(28, 31, 29, 0.16);
     --shadow: 0 24px 48px -24px rgba(16, 24, 40, 0.2);
+    --card-gradient: radial-gradient(circle at top left, rgba(58, 168, 124, 0.15), transparent 60%);
+    --app-gradient: linear-gradient(180deg, rgba(205, 230, 220, 0.4) 0%, rgba(243, 246, 244, 1) 100%);
+    --chip-muted: rgba(28, 31, 29, 0.08);
+    --chip-success: rgba(58, 168, 124, 0.2);
+    --chip-warning: rgba(251, 191, 36, 0.2);
+    --chip-warning-text: #b45309;
+    --chip-danger: rgba(248, 113, 113, 0.2);
+    --chip-danger-text: #b91c1c;
+    --folder-mint: linear-gradient(135deg, #def7ec, #a7f3d0);
+    --folder-sage: linear-gradient(135deg, #e2e8f0, #cbd5f5);
+    --folder-aqua: linear-gradient(135deg, #cffafe, #bae6fd);
+    --folder-sunset: linear-gradient(135deg, #fed7aa, #fca5a5);
+    --folder-lavender: linear-gradient(135deg, #ede9fe, #ddd6fe);
+    --folder-amber: linear-gradient(135deg, #fef3c7, #fde68a);
+    --glass-backdrop: rgba(255, 255, 255, 0.92);
+    --glass-border: rgba(28, 31, 29, 0.12);
+    --input-bg: rgba(255, 255, 255, 0.9);
+    --table-zebra: rgba(58, 168, 124, 0.04);
     font-family: 'Inter', 'Segoe UI', system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
-    background-color: var(--bg);
-    color: var(--text);
+}
+
+:root[data-theme="dark"] {
+    color-scheme: dark;
+    --bg: #101412;
+    --surface: #1a211e;
+    --surface-muted: rgba(32, 40, 37, 0.85);
+    --primary: #4ec08f;
+    --primary-dark: #3aa87c;
+    --primary-soft: rgba(78, 192, 143, 0.22);
+    --accent: #a48dff;
+    --accent-soft: rgba(164, 141, 255, 0.12);
+    --text: #f4f7f5;
+    --muted: #a5ada7;
+    --border: rgba(244, 247, 245, 0.12);
+    --divider-strong: rgba(244, 247, 245, 0.24);
+    --shadow: 0 24px 54px -24px rgba(0, 0, 0, 0.7);
+    --card-gradient: radial-gradient(circle at top left, rgba(78, 192, 143, 0.16), transparent 65%);
+    --app-gradient: linear-gradient(180deg, rgba(16, 20, 18, 0.96) 0%, rgba(12, 15, 13, 0.96) 100%);
+    --chip-muted: rgba(244, 247, 245, 0.12);
+    --chip-success: rgba(78, 192, 143, 0.22);
+    --chip-warning: rgba(250, 204, 91, 0.18);
+    --chip-warning-text: #fcd34d;
+    --chip-danger: rgba(248, 113, 113, 0.24);
+    --chip-danger-text: #fca5a5;
+    --folder-mint: linear-gradient(135deg, rgba(37, 74, 59, 0.9), rgba(58, 168, 124, 0.55));
+    --folder-sage: linear-gradient(135deg, rgba(42, 52, 60, 0.9), rgba(102, 132, 180, 0.6));
+    --folder-aqua: linear-gradient(135deg, rgba(27, 55, 63, 0.9), rgba(80, 149, 189, 0.65));
+    --folder-sunset: linear-gradient(135deg, rgba(64, 38, 32, 0.9), rgba(217, 119, 89, 0.6));
+    --folder-lavender: linear-gradient(135deg, rgba(55, 45, 79, 0.9), rgba(140, 118, 255, 0.55));
+    --folder-amber: linear-gradient(135deg, rgba(67, 49, 19, 0.9), rgba(217, 155, 72, 0.6));
+    --glass-backdrop: rgba(24, 31, 28, 0.85);
+    --glass-border: rgba(244, 247, 245, 0.14);
+    --input-bg: rgba(26, 33, 30, 0.9);
+    --table-zebra: rgba(78, 192, 143, 0.08);
 }
 
 * {
@@ -20,10 +76,11 @@
 body {
     margin: 0;
     min-height: 100vh;
-    background: linear-gradient(180deg, rgba(205, 230, 220, 0.4) 0%, rgba(243, 246, 244, 1) 100%);
+    background: var(--app-gradient);
     color: var(--text);
     display: flex;
     flex-direction: column;
+    transition: background 0.3s ease, color 0.3s ease;
 }
 
 h1, h2, h3, h4 {
@@ -49,9 +106,9 @@ a:hover {
     align-items: center;
     justify-content: space-between;
     padding: 1rem 2rem;
-    background: rgba(255, 255, 255, 0.92);
+    background: var(--glass-backdrop);
     backdrop-filter: blur(12px);
-    border-bottom: 1px solid var(--border);
+    border-bottom: 1px solid var(--glass-border);
     position: sticky;
     top: 0;
     z-index: 20;
@@ -94,7 +151,7 @@ a:hover {
 
 .main-nav a:hover,
 .main-nav a.is-active {
-    background: rgba(58, 168, 124, 0.16);
+    background: var(--primary-soft);
     color: var(--primary-dark);
 }
 
@@ -115,7 +172,7 @@ a:hover {
     padding: 0.45rem 1rem;
     font-weight: 600;
     cursor: pointer;
-    background: rgba(58, 168, 124, 0.2);
+    background: var(--primary-soft);
     color: var(--primary-dark);
     transition: transform 0.2s ease, background 0.2s ease;
     display: inline-flex;
@@ -125,20 +182,35 @@ a:hover {
 
 .chip-button:hover {
     transform: translateY(-1px);
-    background: rgba(58, 168, 124, 0.3);
+    background: var(--primary-soft);
+    background: color-mix(in srgb, var(--primary) 28%, transparent);
 }
 
 .chip-button--ghost {
-    background: rgba(28, 31, 29, 0.08);
+    background: var(--chip-muted);
     color: var(--text);
 }
 
 .chip-button--ghost:hover {
-    background: rgba(28, 31, 29, 0.16);
+    background: var(--chip-muted);
+    background: color-mix(in srgb, var(--text) 16%, transparent);
+}
+
+.theme-switch {
+    gap: 0.35rem;
+}
+
+.theme-switch__icon {
+    font-size: 1.15rem;
+}
+
+.theme-switch__label {
+    font-weight: 600;
 }
 
 .primary-button {
     background: linear-gradient(135deg, var(--primary), #45b789);
+    background: linear-gradient(135deg, var(--primary), color-mix(in srgb, var(--primary) 65%, #4cd59f));
     color: white;
     border: none;
     border-radius: 12px;
@@ -159,9 +231,11 @@ a:hover {
     justify-content: center;
     border-radius: 12px;
     padding: 0.65rem 1.25rem;
-    border: 1px solid rgba(58, 168, 124, 0.3);
+    border: 1px solid var(--primary-soft);
+    border: 1px solid color-mix(in srgb, var(--primary) 40%, transparent);
     color: var(--primary-dark);
-    background: rgba(58, 168, 124, 0.08);
+    background: var(--primary-soft);
+    background: color-mix(in srgb, var(--primary) 12%, transparent);
     font-weight: 600;
 }
 
@@ -212,7 +286,7 @@ a:hover {
 .badge {
     padding: 0.4rem 0.75rem;
     border-radius: 999px;
-    background: rgba(123, 97, 255, 0.1);
+    background: var(--accent-soft);
     color: var(--accent);
     font-weight: 600;
 }
@@ -257,13 +331,17 @@ a:hover {
 .input-control,
 input.input-control,
 select.input-control,
-textarea.input-control {
+textarea.input-control,
+.form-field input,
+.form-field select,
+.form-field textarea {
     width: 100%;
     border-radius: 12px;
     border: 1px solid var(--border);
     padding: 0.65rem 0.85rem;
     font-size: 1rem;
-    background: rgba(255, 255, 255, 0.9);
+    background: var(--input-bg);
+    color: var(--text);
 }
 
 .checkbox {
@@ -292,7 +370,7 @@ textarea.input-control {
     padding: 1rem;
     border-radius: 16px;
     border: 1px solid var(--border);
-    background: rgba(255, 255, 255, 0.8);
+    background: var(--surface-muted);
 }
 
 .job-item--failed {
@@ -318,32 +396,32 @@ textarea.input-control {
     border-radius: 999px;
     font-size: 0.85rem;
     font-weight: 600;
-    background: rgba(28, 31, 29, 0.08);
+    background: var(--chip-muted);
     color: var(--text);
 }
 
 .status-chip--approved,
 .status-chip--completed {
-    background: rgba(58, 168, 124, 0.2);
+    background: var(--chip-success);
     color: var(--primary-dark);
 }
 
 .status-chip--pending {
-    background: rgba(251, 191, 36, 0.2);
-    color: #b45309;
+    background: var(--chip-warning);
+    color: var(--chip-warning-text);
 }
 
 .status-chip--revoked,
 .status-chip--failed {
-    background: rgba(248, 113, 113, 0.2);
-    color: #b91c1c;
+    background: var(--chip-danger);
+    color: var(--chip-danger-text);
 }
 
 .hero-card {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
     gap: 2rem;
-    background: radial-gradient(circle at top left, rgba(58, 168, 124, 0.15), transparent 60%), var(--surface);
+    background: var(--card-gradient), var(--surface);
     border-radius: 28px;
     padding: 2rem;
     box-shadow: var(--shadow);
@@ -403,9 +481,10 @@ textarea.input-control {
     align-items: center;
     padding: 1.25rem;
     border-radius: 18px;
-    background: rgba(255, 255, 255, 0.9);
+    background: var(--surface-muted);
     box-shadow: var(--shadow);
     transition: transform 0.2s ease;
+    color: var(--text);
 }
 
 .folder-card:hover {
@@ -416,12 +495,12 @@ textarea.input-control {
     font-size: 2rem;
 }
 
-.folder-card--mint { background: linear-gradient(135deg, #def7ec, #a7f3d0); }
-.folder-card--sage { background: linear-gradient(135deg, #e2e8f0, #cbd5f5); }
-.folder-card--aqua { background: linear-gradient(135deg, #cffafe, #bae6fd); }
-.folder-card--sunset { background: linear-gradient(135deg, #fed7aa, #fca5a5); }
-.folder-card--lavender { background: linear-gradient(135deg, #ede9fe, #ddd6fe); }
-.folder-card--amber { background: linear-gradient(135deg, #fef3c7, #fde68a); }
+.folder-card--mint { background: var(--folder-mint); }
+.folder-card--sage { background: var(--folder-sage); }
+.folder-card--aqua { background: var(--folder-aqua); }
+.folder-card--sunset { background: var(--folder-sunset); }
+.folder-card--lavender { background: var(--folder-lavender); }
+.folder-card--amber { background: var(--folder-amber); }
 
 .data-table {
     width: 100%;
@@ -452,7 +531,7 @@ textarea.input-control {
     width: 100%;
     height: 100%;
     border: none;
-    background: white;
+    background: var(--surface);
 }
 
 .preview-actions {
@@ -480,7 +559,7 @@ textarea.input-control {
     justify-content: space-between;
     padding: 0.6rem 0.9rem;
     border-radius: 12px;
-    background: rgba(255, 255, 255, 0.8);
+    background: var(--surface-muted);
 }
 
 .admin-console__list li.is-active {
@@ -534,6 +613,18 @@ textarea.input-control {
 }
 
 @media (max-width: 960px) {
+    .app-header {
+        flex-wrap: wrap;
+        gap: 1rem;
+    }
+
+    .main-nav {
+        width: 100%;
+        position: relative;
+        display: flex;
+        justify-content: flex-end;
+    }
+
     .main-nav ul {
         display: none;
         position: absolute;
@@ -558,5 +649,41 @@ textarea.input-control {
     .library-layout,
     .admin-console {
         grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 720px) {
+    .app-header {
+        padding: 0.85rem 1.25rem;
+    }
+
+    .account-actions {
+        width: 100%;
+        justify-content: flex-end;
+    }
+}
+
+@media (max-width: 540px) {
+    .app-header {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .app-logo {
+        justify-content: space-between;
+    }
+
+    .account-actions {
+        justify-content: center;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+    }
+
+    .app-content {
+        width: min(640px, 94%);
+    }
+
+    .theme-switch__label {
+        display: none;
     }
 }
