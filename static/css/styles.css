@@ -226,35 +226,83 @@ a:hover {
     font-weight: 600;
 }
 
-.primary-button {
-    background: linear-gradient(135deg, var(--primary), #45b789);
-    background: linear-gradient(135deg, var(--primary), color-mix(in srgb, var(--primary) 65%, #4cd59f));
-    color: white;
-    border: none;
-    border-radius: 12px;
-    padding: 0.75rem 1.5rem;
-    font-weight: 600;
-    cursor: pointer;
-    box-shadow: var(--shadow);
-    transition: transform 0.2s ease;
-}
-
-.primary-button:hover {
-    transform: translateY(-2px);
-}
-
+.primary-button,
 .secondary-button {
+    position: relative;
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    border-radius: 12px;
-    padding: 0.65rem 1.25rem;
-    border: 1px solid var(--primary-soft);
-    border: 1px solid color-mix(in srgb, var(--primary) 40%, transparent);
-    color: var(--primary-dark);
-    background: var(--primary-soft);
-    background: color-mix(in srgb, var(--primary) 12%, transparent);
+    gap: 0.4rem;
+    border-radius: 999px;
+    padding: 0.75rem 1.6rem;
     font-weight: 600;
+    cursor: pointer;
+    overflow: hidden;
+    transition: color 0.25s ease, transform 0.2s ease;
+    outline: none;
+    z-index: 0;
+}
+
+.primary-button {
+    border: none;
+    color: white;
+    box-shadow: 0 16px 32px -18px rgba(58, 168, 124, 0.7);
+    background: linear-gradient(135deg, var(--primary), color-mix(in srgb, var(--primary) 70%, #4cd59f));
+}
+
+.primary-button::before,
+.secondary-button::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    transform: translateX(-100%);
+    transition: transform 0.4s ease;
+    z-index: -1;
+}
+
+.primary-button::before {
+    background: linear-gradient(135deg, color-mix(in srgb, var(--accent) 35%, var(--primary) 65%), var(--primary));
+}
+
+.primary-button:hover,
+.primary-button:focus-visible {
+    transform: translateY(-2px);
+}
+
+.primary-button:hover::before,
+.primary-button:focus-visible::before,
+.primary-button:active::before {
+    transform: translateX(0);
+}
+
+.primary-button:active {
+    transform: translateY(-1px);
+}
+
+.secondary-button {
+    border: 1px solid color-mix(in srgb, var(--primary) 35%, transparent);
+    color: var(--primary-dark);
+    background: color-mix(in srgb, var(--primary) 10%, transparent);
+}
+
+.secondary-button::before {
+    background: linear-gradient(135deg, color-mix(in srgb, var(--primary) 25%, transparent), color-mix(in srgb, var(--primary) 45%, transparent));
+}
+
+.secondary-button:hover,
+.secondary-button:focus-visible {
+    transform: translateY(-1px);
+}
+
+.secondary-button:hover::before,
+.secondary-button:focus-visible::before,
+.secondary-button:active::before {
+    transform: translateX(0);
+}
+
+.primary-button:focus-visible,
+.secondary-button:focus-visible {
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--primary) 25%, transparent);
 }
 
 .app-content {
@@ -344,6 +392,8 @@ a:hover {
     display: flex;
     gap: 0.75rem;
     align-items: center;
+    justify-content: flex-start;
+    flex-wrap: wrap;
 }
 
 .input-control,
@@ -404,6 +454,8 @@ textarea.input-control,
     display: flex;
     gap: 0.75rem;
     align-items: center;
+    justify-content: flex-start;
+    flex-wrap: wrap;
 }
 
 .status-chip {
@@ -543,6 +595,9 @@ textarea.input-control,
     overflow: hidden;
     border: 1px solid var(--border);
     margin-bottom: 1rem;
+    background: var(--surface);
+    display: flex;
+    flex-direction: column;
 }
 
 .preview-container iframe {
@@ -550,11 +605,22 @@ textarea.input-control,
     height: 100%;
     border: none;
     background: var(--surface);
+    flex: 1 1 auto;
+    display: block;
+    min-height: 320px;
 }
 
 .preview-actions {
     display: flex;
     gap: 0.75rem;
+    flex-wrap: wrap;
+    justify-content: flex-start;
+}
+
+.preview-hint {
+    margin-top: 0.5rem;
+    font-size: 0.9rem;
+    color: var(--muted);
 }
 
 .admin-console {
@@ -686,6 +752,26 @@ textarea.input-control,
     .account-actions {
         width: 100%;
         justify-content: flex-end;
+    }
+
+    .preview-container {
+        height: min(65vh, 480px);
+    }
+
+    .preview-actions,
+    .job-actions,
+    .document-actions,
+    .form-actions {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .preview-actions > *,
+    .job-actions > *,
+    .document-actions > *,
+    .form-actions > * {
+        flex: 1 1 100%;
+        width: 100%;
     }
 }
 

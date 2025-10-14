@@ -15,6 +15,11 @@
     <div class="preview-container">
         {% if document.processed_file %}
             <iframe src="{{ document.processed_file.url }}" title="Previzualizare document"></iframe>
+            <p class="preview-hint">
+                Dacă previzualizarea nu apare, poți
+                <a href="{% url 'portal:download_document' document.id %}">descărca PDF-ul procesat</a>
+                pentru a-l deschide local.
+            </p>
         {% else %}
             <p class="muted">Documentul nu are încă un fișier procesat disponibil.</p>
         {% endif %}
