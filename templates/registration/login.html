@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+
+{% block title %}Autentificare | Portal OCR{% endblock %}
+
+{% block content %}
+<section class="auth-card">
+    <h1>Autentificare</h1>
+    <p>Introdu datele de conectare pentru a accesa interfata web.</p>
+    <form method="post">
+        {% csrf_token %}
+        {{ form.non_field_errors }}
+        <div class="form-control">
+            <label for="{{ form.username.id_for_label }}">Utilizator</label>
+            {{ form.username }}
+            {{ form.username.errors }}
+        </div>
+        <div class="form-control">
+            <label for="{{ form.password.id_for_label }}">Parola</label>
+            {{ form.password }}
+            {{ form.password.errors }}
+        </div>
+        <button type="submit" class="primary-button">Conectare</button>
+    </form>
+</section>
+{% endblock %}

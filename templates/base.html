@@ -1,0 +1,42 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="ro">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>{% block title %}Portal OCR{% endblock %}</title>
+    <link rel="stylesheet" href="{% static 'css/styles.css' %}">
+</head>
+<body>
+<header class="top-bar">
+    <div class="top-bar__brand">OCRmyPDF Web</div>
+    <nav class="top-bar__nav">
+        {% if user.is_authenticated %}
+            <a href="{% url 'portal:dashboard' %}">Panou</a>
+            {% if user.is_staff %}
+                <a href="{% url 'admin:index' %}">Django Admin</a>
+            {% endif %}
+            <form action="{% url 'logout' %}" method="post">
+                {% csrf_token %}
+                <button type="submit" class="link-button">Deconectare</button>
+            </form>
+        {% else %}
+            <a href="{% url 'login' %}">Autentificare</a>
+        {% endif %}
+    </nav>
+</header>
+<main class="container">
+    {% if messages %}
+        <div class="messages">
+            {% for message in messages %}
+                <div class="message message--{{ message.tags|default:'info' }}">{{ message }}</div>
+            {% endfor %}
+        </div>
+    {% endif %}
+    {% block content %}{% endblock %}
+</main>
+<footer class="footer">
+    <p>&copy; {% now "Y" %} OCR Portal. Sustinut de OCRmyPDF si Django.</p>
+</footer>
+</body>
+</html>
