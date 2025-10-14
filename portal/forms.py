@@ -269,8 +269,9 @@ class PortalSettingsForm(forms.ModelForm):
         help_text = 'Selectează motorul implicit folosit pentru OCR.'
         if not PortalSettings.docling_available():
             help_text = (
-                "Motorul Docling necesită instalarea pachetului `docling`."
-                " Momentan este dezactivat."
+                'Motorul Docling necesită pachetul „docling” și dependențe precum '
+                '„rapidocr-onnxruntime” și „opencv-python-headless”. '
+                'Momentan este dezactivat.'
             )
         self.fields['ocr_engine'].help_text = help_text
 
@@ -278,6 +279,6 @@ class PortalSettingsForm(forms.ModelForm):
         engine = self.cleaned_data.get('ocr_engine')
         if engine == PortalSettings.OcrEngine.DOCLING and not PortalSettings.docling_available():
             raise forms.ValidationError(
-                'Instalează pachetul „docling” înainte de a activa acest motor.'
+                'Instalează „docling” împreună cu dependențele recomandate (rapidocr-onnxruntime, opencv-python-headless) înainte de a activa acest motor.'
             )
         return engine
