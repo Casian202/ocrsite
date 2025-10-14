@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+
+{% block title %}{{ folder.name }} | Biblioteci{% endblock %}
+
+{% block content %}
+<section class="section-header">
+    <div>
+        <h1>{{ folder.name }}</h1>
+        {% if folder.description %}<p>{{ folder.description }}</p>{% endif %}
+        <a href="{% url 'portal:libraries' %}" class="chip-button chip-button--ghost">&larr; Înapoi la biblioteci</a>
+    </div>
+</section>
+
+<section class="card">
+    <h2>Documente în folder</h2>
+    {% if documents %}
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>Titlu</th>
+                    <th>Creat</th>
+                    <th>OCR Job</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for document in documents %}
+                    <tr>
+                        <td>{{ document.title }}</td>
+                        <td>{{ document.created_at|date:"d.m.Y H:i" }}</td>
+                        <td>{% if document.ocr_job %}{{ document.ocr_job.get_status_display }}{% else %}-{% endif %}</td>
+                        <td class="table-actions">
+                            <a href="{% url 'portal:preview' document.id %}" class="chip-button">Previzualizează</a>
+                            {% if document.processed_file %}
+                                <a href="{% url 'portal:download_document' document.id %}" class="chip-button chip-button--ghost">Descarcă PDF</a>
+                            {% endif %}
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    {% else %}
+        <p class="muted">Acest folder nu conține încă documente.</p>
+    {% endif %}
+</section>
+{% endblock %}

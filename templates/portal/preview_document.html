@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+
+{% block title %}Previzualizare {{ document.title }} | OCR Workspace{% endblock %}
+
+{% block content %}
+<section class="section-header">
+    <div>
+        <h1>{{ document.title }}</h1>
+        <p class="muted">Folder: {{ document.folder.name }}</p>
+        <a href="{% url 'portal:preview_hub' %}" class="chip-button chip-button--ghost">&larr; Înapoi</a>
+    </div>
+</section>
+
+<section class="card">
+    <div class="preview-container">
+        {% if document.processed_file %}
+            <iframe src="{{ document.processed_file.url }}" title="Previzualizare document"></iframe>
+        {% else %}
+            <p class="muted">Documentul nu are încă un fișier procesat disponibil.</p>
+        {% endif %}
+    </div>
+    <div class="preview-actions">
+        {% if document.processed_file %}
+            <a href="{% url 'portal:download_document' document.id %}" class="primary-button">Descarcă PDF procesat</a>
+        {% endif %}
+        <a href="{{ document.original_file.url }}" class="secondary-button">Vezi PDF original</a>
+    </div>
+</section>
+{% endblock %}

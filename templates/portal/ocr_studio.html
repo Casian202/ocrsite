@@ -1,0 +1,95 @@
+{% extends "base.html" %}
+
+{% block title %}OCR Studio | OCR Workspace{% endblock %}
+
+{% block content %}
+<section class="section-header">
+    <div>
+        <h1>OCR Studio</h1>
+        <p>Procesează PDF-uri cu OCRmyPDF și accesează toate opțiunile avansate, inclusiv detectarea automată a limbilor.</p>
+    </div>
+    <div class="badge">OCRmyPDF {{ ocrmypdf_version|default:"" }}</div>
+</section>
+
+<section class="card-grid">
+    <article class="card">
+        <h2>Configurează o nouă procesare</h2>
+        <form method="post" enctype="multipart/form-data" class="form-grid">
+            {% csrf_token %}
+            <div class="form-field full-width">
+                {{ form.pdf_file.label_tag }}
+                {{ form.pdf_file }}
+                <small class="help-text">{{ form.pdf_file.help_text }}</small>
+                {{ form.pdf_file.errors }}
+            </div>
+            <div class="form-field">
+                {{ form.languages.label_tag }}
+                {{ form.languages }}
+                <small class="help-text">{{ form.languages.help_text }}</small>
+                {{ form.languages.errors }}
+            </div>
+            <div class="form-field">
+                <label class="checkbox">{{ form.auto_language }} <span>Detectare automată</span></label>
+            </div>
+            <div class="form-field">
+                {{ form.destination_folder.label_tag }}
+                {{ form.destination_folder }}
+                <small class="help-text">{{ form.destination_folder.help_text }}</small>
+                {{ form.destination_folder.errors }}
+            </div>
+            <div class="form-field">
+                {{ form.optimize_level.label_tag }}
+                {{ form.optimize_level }}
+                <small class="help-text">{{ form.optimize_level.help_text }}</small>
+            </div>
+            <div class="form-field toggle-group">
+                <label class="checkbox">{{ form.deskew }} <span>{{ form.deskew.label }}</span></label>
+                <label class="checkbox">{{ form.rotate_pages }} <span>{{ form.rotate_pages.label }}</span></label>
+                <label class="checkbox">{{ form.remove_background }} <span>{{ form.remove_background.label }}</span></label>
+                <label class="checkbox">{{ form.clean_final }} <span>{{ form.clean_final.label }}</span></label>
+                <label class="checkbox">{{ form.skip_text }} <span>{{ form.skip_text.label }}</span></label>
+                <label class="checkbox">{{ form.force_ocr }} <span>{{ form.force_ocr.label }}</span></label>
+                <label class="checkbox">{{ form.make_sidecar }} <span>{{ form.make_sidecar.label }}</span></label>
+            </div>
+            <div class="form-field">
+                {{ form.output_type.label_tag }}
+                {{ form.output_type }}
+            </div>
+            <div class="form-actions full-width">
+                <button type="submit" class="primary-button">Pornește OCR</button>
+            </div>
+        </form>
+    </article>
+
+    <article class="card">
+        <h2>Istoric ultimele procesări</h2>
+        {% if jobs %}
+            <div class="job-list">
+                {% for job in jobs %}
+                    <div class="job-item job-item--{{ job.status }}">
+                        <div>
+                            <h3>{{ job.processed_filename|default:job.source_file.name }}</h3>
+                            <p class="muted">Creat {{ job.created_at|date:"d.m.Y H:i" }} · Limbi: {{ job.language_labels }}</p>
+                            {% if job.error_message %}
+                                <p class="error-text">{{ job.error_message }}</p>
+                            {% endif %}
+                        </div>
+                        <div class="job-actions">
+                            {% if job.status == 'completed' %}
+                                <a href="{% url 'portal:download_job' job.id %}" class="chip-button">Descarcă PDF</a>
+                                {% if job.sidecar_file %}
+                                    <a href="{% url 'portal:download_sidecar' job.id %}" class="chip-button chip-button--ghost">Sidecar</a>
+                                {% endif %}
+                            {% else %}
+                                <span class="status-chip status-chip--{{ job.status }}">{{ job.get_status_display }}</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <p class="muted">Nu există încă procesări. Încarcă un PDF pentru a porni primul job.</p>
+        {% endif %}
+    </article>
+</section>
+{% endblock %}
