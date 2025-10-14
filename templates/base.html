@@ -1,42 +1,163 @@
 {% load static %}
 <!DOCTYPE html>
-<html lang="ro">
+<html lang="ro" data-theme="light">
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>{% block title %}Portal OCR{% endblock %}</title>
+    <title>{% block title %}OCR Workspace{% endblock %}</title>
+    <script>
+        (function () {
+            try {
+                const storedTheme = window.localStorage.getItem('ocr-theme');
+                const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+                const theme = storedTheme || (prefersDark ? 'dark' : 'light');
+                document.documentElement.dataset.theme = theme;
+            } catch (error) {
+                document.documentElement.dataset.theme = 'light';
+            }
+        })();
+    </script>
     <link rel="stylesheet" href="{% static 'css/styles.css' %}">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 </head>
 <body>
-<header class="top-bar">
-    <div class="top-bar__brand">OCRmyPDF Web</div>
-    <nav class="top-bar__nav">
-        {% if user.is_authenticated %}
-            <a href="{% url 'portal:dashboard' %}">Panou</a>
-            {% if user.is_staff %}
-                <a href="{% url 'admin:index' %}">Django Admin</a>
+<header class="app-header">
+    <div class="app-logo">
+        <span class="app-logo__icon">🟢</span>
+        <span class="app-logo__text">OCR Workspace</span>
+    </div>
+    <button class="nav-toggle" aria-expanded="false" aria-controls="main-nav">☰</button>
+    <nav id="main-nav" class="main-nav">
+        <ul>
+            <li><a href="{% url 'portal:home' %}" class="{% if request.resolver_match.url_name == 'home' %}is-active{% endif %}">Instrucțiuni</a></li>
+            {% if user.is_authenticated and portal_menu_items %}
+                {% for item in portal_menu_items %}
+                    <li>
+                        {% if item.key == 'ocr' %}
+                            <a href="{% url 'portal:ocr' %}" class="{% if request.resolver_match.url_name == 'ocr' %}is-active{% endif %}">{{ item.label }}</a>
+                        {% elif item.key == 'libraries' %}
+                            {% with current=request.resolver_match.url_name %}
+                                <a href="{% url 'portal:libraries' %}" class="{% if current == 'libraries' or current == 'library_detail' %}is-active{% endif %}">{{ item.label }}</a>
+                            {% endwith %}
+                        {% elif item.key == 'preview' %}
+                            {% with current=request.resolver_match.url_name %}
+                                <a href="{% url 'portal:preview_hub' %}" class="{% if current == 'preview' or current == 'preview_hub' %}is-active{% endif %}">{{ item.label }}</a>
+                            {% endwith %}
+                        {% elif item.key == 'word' %}
+                            <a href="{% url 'portal:word' %}" class="{% if request.resolver_match.url_name == 'word' %}is-active{% endif %}">{{ item.label }}</a>
+                        {% elif item.key == 'admin' %}
+                            <a href="{% url 'portal:admin' %}" class="{% if request.resolver_match.url_name == 'admin' %}is-active{% endif %}">{{ item.label }}</a>
+                        {% endif %}
+                    </li>
+                {% endfor %}
             {% endif %}
+            {% if user.is_authenticated and user.is_staff %}
+                <li><a href="{% url 'admin:index' %}">Django Admin</a></li>
+            {% endif %}
+        </ul>
+    </nav>
+    <div class="account-actions">
+        <button id="theme-toggle" class="chip-button chip-button--ghost theme-switch" type="button" aria-pressed="false">
+            <span class="theme-switch__icon" aria-hidden="true">☀️</span>
+            <span class="theme-switch__label">Zi</span>
+        </button>
+        {% if user.is_authenticated %}
+            <span class="account-actions__user">{{ user.username }}</span>
             <form action="{% url 'logout' %}" method="post">
                 {% csrf_token %}
-                <button type="submit" class="link-button">Deconectare</button>
+                <button type="submit" class="chip-button">Deconectare</button>
             </form>
         {% else %}
-            <a href="{% url 'login' %}">Autentificare</a>
+            <a href="{% url 'login' %}" class="chip-button">Autentificare</a>
+            <a href="{% url 'portal:signup' %}" class="chip-button chip-button--ghost">Creează cont</a>
         {% endif %}
-    </nav>
+    </div>
 </header>
-<main class="container">
+<main class="app-content">
     {% if messages %}
-        <div class="messages">
+        <div class="toast-stack">
             {% for message in messages %}
-                <div class="message message--{{ message.tags|default:'info' }}">{{ message }}</div>
+                <div class="toast toast--{{ message.tags|default:'info' }}">{{ message }}</div>
             {% endfor %}
         </div>
     {% endif %}
     {% block content %}{% endblock %}
 </main>
-<footer class="footer">
-    <p>&copy; {% now "Y" %} OCR Portal. Sustinut de OCRmyPDF si Django.</p>
+<footer class="app-footer">
+    <p>&copy; {% now "Y" %} OCR Workspace · Construit cu Django și OCRmyPDF.</p>
 </footer>
+<script>
+    const navToggle = document.querySelector('.nav-toggle');
+    const nav = document.getElementById('main-nav');
+    if (navToggle && nav) {
+        navToggle.addEventListener('click', () => {
+            const expanded = navToggle.getAttribute('aria-expanded') === 'true';
+            navToggle.setAttribute('aria-expanded', (!expanded).toString());
+            nav.classList.toggle('is-open');
+        });
+    }
+
+    const themeToggle = document.getElementById('theme-toggle');
+    const themeIcon = themeToggle ? themeToggle.querySelector('.theme-switch__icon') : null;
+    const themeLabel = themeToggle ? themeToggle.querySelector('.theme-switch__label') : null;
+
+    const applyTheme = (theme) => {
+        document.documentElement.dataset.theme = theme;
+        if (themeToggle) {
+            themeToggle.setAttribute('aria-pressed', theme === 'dark' ? 'true' : 'false');
+            themeToggle.dataset.theme = theme;
+        }
+        if (themeIcon && themeLabel) {
+            const isDark = theme === 'dark';
+            themeIcon.textContent = isDark ? '🌙' : '☀️';
+            themeLabel.textContent = isDark ? 'Noapte' : 'Zi';
+        }
+        try {
+            window.localStorage.setItem('ocr-theme', theme);
+        } catch (error) {
+            // Ignore storage failures (e.g., private browsing)
+        }
+    };
+
+    (function initializeTheme() {
+        let theme = document.documentElement.dataset.theme || 'light';
+        try {
+            const storedTheme = window.localStorage.getItem('ocr-theme');
+            if (storedTheme) {
+                theme = storedTheme;
+            }
+        } catch (error) {
+            // If storage is unavailable fall back to the current dataset theme
+        }
+        applyTheme(theme);
+    })();
+
+    if (themeToggle) {
+        themeToggle.addEventListener('click', () => {
+            const nextTheme = document.documentElement.dataset.theme === 'dark' ? 'light' : 'dark';
+            applyTheme(nextTheme);
+        });
+    }
+
+    if (window.matchMedia) {
+        const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
+        const handlePreferenceChange = (event) => {
+            try {
+                if (!window.localStorage.getItem('ocr-theme')) {
+                    applyTheme(event.matches ? 'dark' : 'light');
+                }
+            } catch (error) {
+                applyTheme(event.matches ? 'dark' : 'light');
+            }
+        };
+        if (mediaQuery.addEventListener) {
+            mediaQuery.addEventListener('change', handlePreferenceChange);
+        } else if (mediaQuery.addListener) {
+            mediaQuery.addListener(handlePreferenceChange);
+        }
+    }
+</script>
 </body>
 </html>

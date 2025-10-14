@@ -5,7 +5,9 @@ Interfata web simpla pentru procesarea PDF-urilor cu OCRmyPDF pe Ubuntu 24.04. A
 - autentificare separata fata de Django Admin;
 - panou web pentru incarcarea documentelor PDF si selectarea uneia sau mai multor limbi;
 - integrare OCRmyPDF cu pastrarea rezultatului si optiuni de descarcare;
-- istoric al conversiilor salvate in baza de date.
+- istoric al conversiilor salvate in baza de date;
+- interfata moderna optimizata pentru mobil, cu comutator intre tema luminoasa si intunecata.
+- suport pentru alegerea motorului OCR (OCRmyPDF sau Docling) direct din consola web de administrare.
 
 ## Cerinte de sistem
 
@@ -44,21 +46,21 @@ python manage.py createsuperuser
 python manage.py runserver 0.0.0.0:8000
 ```
 
-Acceseaza:
-
-- Portal OCR: `http://localhost:8000/`
-- Autentificare: `http://localhost:8000/autentificare/`
-- Django Admin: `http://localhost:8000/admin/`
+Aplicatia este disponibila la `http://localhost:8000/`. Pagina de autentificare redirectioneaza automat utilizatorii neautentificati.
 
 ## Utilizare
 
 1. Autentifica-te folosind credentialele create.
-2. Incarca un fisier PDF (maxim un fisier per procesare).
-3. Selecteaza una sau mai multe limbi; combinatiile sunt trimise catre OCRmyPDF (`ron+eng`, `ron+deu` etc.).
-4. Asteapta finalizarea procesului (durata depinde de dimensiunea PDF-ului).
-5. Descarca fisierul procesat din tabelul de istoric.
+2. Acceseaza meniurile permise de administrator (OCR Studio, Biblioteci, Previzualizare, Documente Word etc.).
+3. Incarca un fisier PDF (maxim un fisier per procesare) si alege limbile sau activati detectarea automata.
+4. Asteapta finalizarea procesului (durata depinde de dimensiunea PDF-ului) si trimite rezultatul in biblioteca dorita.
+5. Descarca, previzualizeaza sau converteste fisierele direct din interfata.
+
+> Comutatorul „Zi/Noapte” din antet salveaza preferinta local si se sincronizeaza cu setarile sistemului (daca nu exista o preferinta explicita).
 
 > In cazul unei erori (de exemplu depedente lipsa), mesajul este afisat in interfata si salvat in baza de date.
+
+> Administratorii pot schimba motorul folosit pentru OCR (OCRmyPDF sau Docling) din meniul „Consolă administrator”. Optiunea Docling devine activa doar daca pachetul este instalat pe server.
 
 ## Structura
 
@@ -66,9 +68,60 @@ Acceseaza:
 - `templates/` – layout global si pagini pentru autentificare si panou.
 - `static/` – fisiere CSS pentru interfata.
 - `media/uploads/`, `media/processed/` – directoare create automat de Django pentru fisierele incarcate si rezultatele OCR.
+- `deploy/nginx/` – configuratia nginx folosita de docker compose pentru a servi aplicatia si fisierele statice.
+
+## Docker pe Ubuntu 24.04
+
+1. Instaleaza Docker Engine si Docker Compose Plugin (pe Ubuntu 24.04):
+
+   ```bash
+   sudo apt update
+   sudo apt install docker.io docker-compose-plugin
+   sudo systemctl enable --now docker
+   ```
+
+2. Cloneaza proiectul si pregateste variabilele de mediu:
+
+   ```bash
+   git clone <repo>
+   cd ocrsite
+   cp .env.example .env
+   touch db.sqlite3
+   ```
+
+   > Editeaza `.env` pentru a seta `DJANGO_SECRET_KEY`, lista de domenii acceptate (`DJANGO_ALLOWED_HOSTS`), baza URL a site-ului (`SITE_BASE_URL`) si origini de incredere pentru CSRF (`CSRF_TRUSTED_ORIGINS`).
+
+3. (Optional) Instaleaza Docling pentru a folosi motorul alternativ:
+
+   ```bash
+   pip install docling
+   ```
+
+   > Daca Docling nu este instalat, optiunea ramane indisponibila in consola de administrare.
+
+4. Porneste serviciile (aplicatie Django + proxy nginx):
+
+   ```bash
+   docker compose up --build -d
+   ```
+
+   Serviciul `web` ruleaza `gunicorn` pe portul intern `8000`, iar nginx expune acelasi port catre gazda, servind resursele statice si media din volumele partajate.
+
+5. Verifica log-urile si statusul:
+
+   ```bash
+   docker compose logs -f
+   docker compose ps
+   ```
+
+6. Opreste serviciul:
+
+   ```bash
+   docker compose down
+   ```
 
 ## Productie
 
-- Configureaza variabila `DEBUG=False` si setarile pentru `ALLOWED_HOSTS`.
-- Serveste fisierele statice cu `collectstatic`.
-- Ruleaza aplicatia printr-un server WSGI (gunicorn + nginx) si configureaza un worker dedicat pentru sarcini lungi daca volumele sunt mari.
+- Seteaza `DJANGO_DEBUG=False` si configureaza `DJANGO_ALLOWED_HOSTS` (ex.: `ocr.casianhome.org`).
+- Foloseste `entrypoint.sh` pentru a rula automat migrarile si `collectstatic` in container.
+- Configureaza un reverse proxy (nginx/Traefik) pentru TLS si headere `X-Forwarded-*` atunci cand rulezi in productie.
