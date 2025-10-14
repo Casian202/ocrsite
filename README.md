@@ -120,6 +120,56 @@ Aplicatia este disponibila la `http://localhost:8000/`. Pagina de autentificare 
    docker compose down
    ```
 
+## Docker pe Ubuntu 24.04
+
+1. Instaleaza Docker Engine si Docker Compose Plugin (pe Ubuntu 24.04):
+
+   ```bash
+   sudo apt update
+   sudo apt install docker.io docker-compose-plugin
+   sudo systemctl enable --now docker
+   ```
+
+2. Cloneaza proiectul si pregateste variabilele de mediu:
+
+   ```bash
+   git clone <repo>
+   cd ocrsite
+   cp .env.example .env
+   touch db.sqlite3
+   ```
+
+   > Editeaza `.env` pentru a seta `DJANGO_SECRET_KEY` si lista de domenii acceptate (`DJANGO_ALLOWED_HOSTS`).
+
+3. (Optional) Instaleaza Docling pentru a folosi motorul alternativ:
+
+   ```bash
+   pip install docling
+   ```
+
+   > Daca Docling nu este instalat, optiunea ramane indisponibila in consola de administrare.
+
+4. Porneste serviciul:
+
+   ```bash
+   docker compose up --build -d
+   ```
+
+   Containerul ruleaza `gunicorn` pe portul `8000` si monteaza directoarele `media/` si fisierul `db.sqlite3` pentru persistenta.
+
+5. Verifica log-urile si statusul:
+
+   ```bash
+   docker compose logs -f
+   docker compose ps
+   ```
+
+6. Opreste serviciul:
+
+   ```bash
+   docker compose down
+   ```
+
 ## Productie
 
 - Seteaza `DJANGO_DEBUG=False` si configureaza `DJANGO_ALLOWED_HOSTS` (ex.: `ocr.casianhome.org`).
