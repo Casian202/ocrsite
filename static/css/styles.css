@@ -344,6 +344,8 @@ a:hover {
     display: flex;
     gap: 0.75rem;
     align-items: center;
+    justify-content: flex-start;
+    flex-wrap: wrap;
 }
 
 .input-control,
@@ -404,6 +406,8 @@ textarea.input-control,
     display: flex;
     gap: 0.75rem;
     align-items: center;
+    justify-content: flex-start;
+    flex-wrap: wrap;
 }
 
 .status-chip {
@@ -543,6 +547,9 @@ textarea.input-control,
     overflow: hidden;
     border: 1px solid var(--border);
     margin-bottom: 1rem;
+    background: var(--surface);
+    display: flex;
+    flex-direction: column;
 }
 
 .preview-container iframe {
@@ -550,11 +557,22 @@ textarea.input-control,
     height: 100%;
     border: none;
     background: var(--surface);
+    flex: 1 1 auto;
+    display: block;
+    min-height: 320px;
 }
 
 .preview-actions {
     display: flex;
     gap: 0.75rem;
+    flex-wrap: wrap;
+    justify-content: flex-start;
+}
+
+.preview-hint {
+    margin-top: 0.5rem;
+    font-size: 0.9rem;
+    color: var(--muted);
 }
 
 .admin-console {
@@ -686,6 +704,26 @@ textarea.input-control,
     .account-actions {
         width: 100%;
         justify-content: flex-end;
+    }
+
+    .preview-container {
+        height: min(65vh, 480px);
+    }
+
+    .preview-actions,
+    .job-actions,
+    .document-actions,
+    .form-actions {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .preview-actions > *,
+    .job-actions > *,
+    .document-actions > *,
+    .form-actions > * {
+        flex: 1 1 100%;
+        width: 100%;
     }
 }
 
