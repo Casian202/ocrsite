@@ -1,5 +1,7 @@
 import importlib.util
+import logging
 import uuid
+from functools import lru_cache
 from pathlib import Path
 
 from django.contrib.auth import get_user_model
@@ -7,6 +9,37 @@ from django.core.files.storage import default_storage
 from django.db import DatabaseError, models
 
 from .constants import FOLDER_COLOR_CHOICES, LANGUAGE_LOOKUP, MENU_CHOICES, OCR_ENGINE_CHOICES
+
+
+log = logging.getLogger(__name__)
+
+
+@lru_cache(maxsize=1)
+def _docling_ready() -> bool:
+    """Best-effort probe to determine if Docling can be used."""
+
+    if importlib.util.find_spec('docling') is None:
+        return False
+
+    try:  # pragma: no cover - runtime environment probe
+        from docling.document_converter import DocumentConverter
+    except Exception:  # noqa: BLE001 - import-time issues mean Docling is unusable
+        log.debug('Docling import failed.', exc_info=True)
+        return False
+
+    try:
+        # Instantiate lazily to surface dependency issues (opencv, rapidocr, etc.).
+        converter = DocumentConverter()  # type: ignore[call-arg]
+    except TypeError:
+        # Signature changes shouldn't mark the engine as unavailable.
+        return True
+    except Exception:  # noqa: BLE001 - we want to swallow any startup issue
+        log.debug('Docling is installed but failed to initialize.', exc_info=True)
+        return False
+    else:
+        del converter
+
+    return True
 
 
 class PortalSettings(models.Model):
@@ -43,7 +76,7 @@ class PortalSettings(models.Model):
 
     @staticmethod
     def docling_available() -> bool:
-        return importlib.util.find_spec('docling') is not None
+        return _docling_ready()
 
 
 class PortalAccess(models.Model):

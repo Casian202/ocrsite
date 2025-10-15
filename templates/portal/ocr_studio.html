@@ -40,8 +40,9 @@
                 <small class="help-text">{{ form.languages.help_text }}</small>
                 {{ form.languages.errors }}
             </div>
-            <div class="form-field">
-                <label class="checkbox">{{ form.auto_language }} <span>Detectare automată</span></label>
+            <div class="form-field toggle-field">
+                {{ form.auto_language }}
+                {{ form.auto_language.errors }}
             </div>
             <div class="form-field">
                 {{ form.destination_folder.label_tag }}
@@ -54,14 +55,14 @@
                 {{ form.optimize_level }}
                 <small class="help-text">{{ form.optimize_level.help_text }}</small>
             </div>
-            <div class="form-field toggle-group">
-                <label class="checkbox">{{ form.deskew }} <span>{{ form.deskew.label }}</span></label>
-                <label class="checkbox">{{ form.rotate_pages }} <span>{{ form.rotate_pages.label }}</span></label>
-                <label class="checkbox">{{ form.remove_background }} <span>{{ form.remove_background.label }}</span></label>
-                <label class="checkbox">{{ form.clean_final }} <span>{{ form.clean_final.label }}</span></label>
-                <label class="checkbox">{{ form.skip_text }} <span>{{ form.skip_text.label }}</span></label>
-                <label class="checkbox">{{ form.force_ocr }} <span>{{ form.force_ocr.label }}</span></label>
-                <label class="checkbox">{{ form.make_sidecar }} <span>{{ form.make_sidecar.label }}</span></label>
+            <div class="form-field toggle-collection">
+                {{ form.deskew }}
+                {{ form.rotate_pages }}
+                {{ form.remove_background }}
+                {{ form.clean_final }}
+                {{ form.skip_text }}
+                {{ form.force_ocr }}
+                {{ form.make_sidecar }}
             </div>
             <div class="form-field">
                 {{ form.output_type.label_tag }}
@@ -79,9 +80,12 @@
             <div class="job-list">
                 {% for job in jobs %}
                     <div class="job-item job-item--{{ job.status }}">
-                        <div>
-                            <h3>{{ job.processed_filename|default:job.source_file.name }}</h3>
+                        <div class="job-item__details">
+                            <h3 class="job-item__title">{{ job.processed_filename|default:job.source_file.name }}</h3>
                             <p class="muted">Creat {{ job.created_at|date:"d.m.Y H:i" }} · Limbi: {{ job.language_labels }}</p>
+                            {% if job.destination_folder %}
+                                <p class="muted">Arhivat în: {{ job.destination_folder.name }}</p>
+                            {% endif %}
                             {% if job.error_message %}
                                 <p class="error-text">{{ job.error_message }}</p>
                             {% endif %}
@@ -89,6 +93,7 @@
                         <div class="job-actions">
                             {% if job.status == 'completed' %}
                                 <a href="{% url 'portal:download_job' job.id %}" class="chip-button">Descarcă PDF</a>
+                                <a href="{% url 'portal:assign_job_folder' job.id %}" class="chip-button chip-button--accent">Salvează în folder</a>
                                 {% if job.sidecar_file %}
                                     <a href="{% url 'portal:download_sidecar' job.id %}" class="chip-button chip-button--ghost">Sidecar</a>
                                 {% endif %}

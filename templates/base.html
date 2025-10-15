@@ -24,11 +24,10 @@
 </head>
 <body>
 <header class="app-header">
-    <div class="app-logo">
-        <span class="app-logo__icon">🟢</span>
-        <span class="app-logo__text">OCR Workspace</span>
-    </div>
-    <button class="nav-toggle" aria-expanded="false" aria-controls="main-nav">☰</button>
+    <a href="{% url 'portal:home' %}" class="app-logo" aria-label="Pagina principală">
+        <span class="app-logo__icon" aria-hidden="true">🟢</span>
+    </a>
+    <button class="nav-toggle" aria-expanded="false" aria-controls="main-nav" aria-label="Comută navigarea">☰</button>
     <nav id="main-nav" class="main-nav">
         <ul>
             <li><a href="{% url 'portal:home' %}" class="{% if request.resolver_match.url_name == 'home' %}is-active{% endif %}">Instrucțiuni</a></li>
