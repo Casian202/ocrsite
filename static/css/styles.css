@@ -207,6 +207,10 @@ a:hover {
     color: var(--primary-dark);
 }
 
+.app-logo__text {
+    font-size: 1.1rem;
+}
+
 .account-actions {
     display: flex;
     align-items: center;
