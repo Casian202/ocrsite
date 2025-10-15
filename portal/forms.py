@@ -4,11 +4,23 @@ from typing import Iterable
 
 from django import forms
 from django.contrib.auth import get_user_model
-from django.contrib.auth.forms import UserCreationForm
+from django.contrib.auth.forms import AuthenticationForm, UserCreationForm
 from django.core.validators import FileExtensionValidator
 
 from .constants import FOLDER_COLOR_CHOICES, LANGUAGE_CHOICES, MENU_CHOICES
 from .models import LibraryFolder, PortalAccess, PortalSettings, StoredDocument, WordDocument
+
+
+class StyledAuthenticationForm(AuthenticationForm):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        for name, field in self.fields.items():
+            existing = field.widget.attrs.get('class', '')
+            field.widget.attrs['class'] = f"{existing} input-control".strip()
+            if name == 'username':
+                field.widget.attrs.setdefault('placeholder', 'Utilizator')
+            elif name == 'password':
+                field.widget.attrs.setdefault('placeholder', 'Parola')
 
 
 class SignUpForm(UserCreationForm):
@@ -134,6 +146,21 @@ class OcrRequestForm(forms.Form):
         return cleaned
 
 
+class JobDestinationForm(forms.Form):
+    destination_folder = forms.ModelChoiceField(
+        queryset=LibraryFolder.objects.none(),
+        label='Selectează folderul',
+        help_text='Alege folderul în care va fi arhivat documentul procesat.',
+    )
+
+    def __init__(self, *args, **kwargs):
+        user = kwargs.pop('user', None)
+        super().__init__(*args, **kwargs)
+        if user is not None:
+            self.fields['destination_folder'].queryset = user.library_folders.all()
+        self.fields['destination_folder'].widget.attrs.update({'class': 'input-control'})
+
+
 class FolderForm(forms.ModelForm):
     class Meta:
         model = LibraryFolder
@@ -257,8 +284,9 @@ class PortalSettingsForm(forms.ModelForm):
         help_text = 'Selectează motorul implicit folosit pentru OCR.'
         if not PortalSettings.docling_available():
             help_text = (
-                "Motorul Docling necesită instalarea pachetului `docling`."
-                " Momentan este dezactivat."
+                'Motorul Docling necesită pachetul „docling” și dependențe precum '
+                '„rapidocr-onnxruntime” și „opencv-python-headless”. '
+                'Momentan este dezactivat.'
             )
         self.fields['ocr_engine'].help_text = help_text
 
@@ -266,6 +294,6 @@ class PortalSettingsForm(forms.ModelForm):
         engine = self.cleaned_data.get('ocr_engine')
         if engine == PortalSettings.OcrEngine.DOCLING and not PortalSettings.docling_available():
             raise forms.ValidationError(
-                'Instalează pachetul „docling” înainte de a activa acest motor.'
+                'Instalează „docling” împreună cu dependențele recomandate (rapidocr-onnxruntime, opencv-python-headless) înainte de a activa acest motor.'
             )
         return engine
