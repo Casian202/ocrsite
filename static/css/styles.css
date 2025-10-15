@@ -929,6 +929,109 @@ body.modal-open {
     margin-left: auto;
 }
 
+.job-menu {
+    position: relative;
+}
+
+.job-menu__toggle {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 2.25rem;
+    height: 2.25rem;
+    border-radius: 999px;
+    border: 1px solid var(--border);
+    background: var(--surface);
+    color: var(--text);
+    cursor: pointer;
+    transition: background 0.2s ease, border-color 0.2s ease, color 0.2s ease, transform 0.15s ease;
+}
+
+.job-menu__toggle svg {
+    width: 1.2rem;
+    height: 1.2rem;
+    fill: currentColor;
+}
+
+.job-menu__toggle:hover,
+.job-menu__toggle:focus-visible,
+.job-menu.is-open .job-menu__toggle {
+    outline: none;
+    background: var(--primary-soft);
+    border-color: rgba(58, 168, 124, 0.4);
+    color: var(--primary-dark);
+    transform: translateY(-1px);
+}
+
+.job-menu__panel {
+    position: absolute;
+    top: calc(100% + 0.5rem);
+    right: 0;
+    min-width: 220px;
+    padding: 0.5rem;
+    border-radius: 14px;
+    border: 1px solid var(--border);
+    background: var(--surface);
+    box-shadow: var(--shadow);
+    display: none;
+    z-index: 20;
+}
+
+.job-menu__panel.is-open {
+    display: block;
+}
+
+.job-menu__list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+}
+
+.job-menu__action {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    gap: 0.65rem;
+    padding: 0.6rem 0.75rem;
+    border-radius: 10px;
+    font: inherit;
+    font-size: 0.9rem;
+    color: var(--text);
+    background: transparent;
+    border: none;
+    text-decoration: none;
+    cursor: pointer;
+    text-align: left;
+    transition: background 0.2s ease, color 0.2s ease;
+}
+
+.job-menu__action svg {
+    width: 1rem;
+    height: 1rem;
+    fill: currentColor;
+    flex-shrink: 0;
+}
+
+.job-menu__action:hover,
+.job-menu__action:focus-visible {
+    outline: none;
+    background: var(--primary-soft);
+    color: var(--primary-dark);
+}
+
+.job-menu__action--danger {
+    color: var(--chip-danger-text);
+}
+
+.job-menu__action--danger:hover,
+.job-menu__action--danger:focus-visible {
+    background: rgba(239, 68, 68, 0.15);
+    color: #b91c1c;
+}
+
 .job-item__details {
     flex: 1 1 240px;
     min-width: 0;
