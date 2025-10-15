@@ -488,7 +488,7 @@ def _run_with_ocrmypdf(job: OcrJob) -> ProcessingResult:
             'rotate_pages': options.get('rotate_pages', False),
             'remove_background': options.get('remove_background', False),
             'clean_final': options.get('clean_final', False),
-            'skip_text': options.get('skip_text', False),
+            'skip_text': options.get('skip_text', True),
             'force_ocr': options.get('force_ocr', False),
             'output_type': options.get('output_type') or 'pdfa',
             'progress_bar': False,
