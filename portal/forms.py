@@ -89,6 +89,7 @@ class OcrRequestForm(forms.Form):
     )
     skip_text = forms.BooleanField(
         required=False,
+        initial=True,
         label='Sari peste paginile care au deja text (skip-text)',
         widget=ToggleSwitchInput(),
     )
