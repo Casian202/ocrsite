@@ -1,7 +1,7 @@
 {% with control_id=widget.attrs.id %}
 <div class="toggle-switch">
     <input type="{{ widget.type }}" name="{{ widget.name }}"{% if widget.value != None %} value="{{ widget.value|stringformat:'s' }}"{% endif %}{% include "django/forms/widgets/attrs.html" %}>
-    <label{% if control_id %} for="{{ control_id }}"{% endif %} class="toggle-switch__track"></label>
+    <label{% if control_id %} for="{{ control_id }}"{% endif %} class="toggle-switch__track" aria-hidden="true"></label>
     {% if widget.label_text %}
         <span class="toggle-switch__caption">{{ widget.label_text }}</span>
     {% endif %}

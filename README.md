@@ -99,22 +99,33 @@ Aplicatia este disponibila la `http://localhost:8000/`. Pagina de autentificare 
 
    > Daca Docling nu este instalat, optiunea ramane indisponibila in consola de administrare.
 
-4. Porneste serviciile (aplicatie Django + proxy nginx):
+4. Construieste imaginile si pregateste baza de date:
 
    ```bash
-   docker compose up --build -d
+   docker compose build
+   docker compose run --rm web python manage.py migrate
+   docker compose run --rm web python manage.py collectstatic --noinput
+   docker compose run --rm web python manage.py createsuperuser
+   ```
+
+   > `createsuperuser` este optional dar recomandat la prima rulare pentru a putea accesa interfata web.
+
+5. Porneste serviciile (aplicatie Django + proxy nginx):
+
+   ```bash
+   docker compose up -d
    ```
 
    Serviciul `web` ruleaza `gunicorn` pe portul intern `8000`, iar nginx expune acelasi port catre gazda, servind resursele statice si media din volumele partajate.
 
-5. Verifica log-urile si statusul:
+6. Verifica log-urile si statusul:
 
    ```bash
    docker compose logs -f
    docker compose ps
    ```
 
-6. Opreste serviciul:
+7. Opreste serviciul:
 
    ```bash
    docker compose down

@@ -9,7 +9,13 @@
     <p>Introdu datele de conectare pentru a accesa interfata web.</p>
     <form method="post">
         {% csrf_token %}
-        {{ form.non_field_errors }}
+        {% if form.non_field_errors %}
+            <ul class="errorlist" role="alert">
+                {% for error in form.non_field_errors %}
+                    <li>{{ error }}</li>
+                {% endfor %}
+            </ul>
+        {% endif %}
         <div class="form-field">
             <label for="{{ form.username.id_for_label }}">Utilizator</label>
             {{ form.username }}
