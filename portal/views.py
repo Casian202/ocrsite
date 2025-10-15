@@ -1,9 +1,11 @@
 from __future__ import annotations
 
+import io
 import logging
 import re
 import shutil
 import tempfile
+import zipfile
 from dataclasses import dataclass
 from pathlib import Path
 
@@ -13,6 +15,7 @@ from django.core.files import File
 from django.http import FileResponse, Http404
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
+from django.utils.text import slugify
 
 from .decorators import portal_menu_required
 from .forms import (
@@ -195,6 +198,51 @@ def library_detail(request, folder_id):
             'folder': folder,
             'documents': documents,
         },
+    )
+
+
+@portal_menu_required('libraries')
+def download_library_archive(request, folder_id):
+    folder = get_object_or_404(LibraryFolder, id=folder_id, user=request.user)
+    documents = list(folder.documents.all())
+
+    buffer = io.BytesIO()
+    with zipfile.ZipFile(buffer, 'w', zipfile.ZIP_DEFLATED) as archive:
+        if not documents:
+            archive.writestr('citeste-ma.txt', 'Acest folder nu conține documente.')
+        for document in documents:
+            original_stem = ''
+            if document.original_file and document.original_file.name:
+                original_stem = Path(document.original_file.name).stem
+            base_label = slugify(document.title) or slugify(original_stem)
+            if not base_label:
+                base_label = document.id.hex
+            entry_prefix = f"{base_label}-{document.id.hex[:8]}/"
+
+            if document.original_file:
+                original_name = document.original_filename()
+                with document.original_file.open('rb') as original_stream:
+                    archive.writestr(
+                        f"{entry_prefix}{original_name}",
+                        original_stream.read(),
+                    )
+
+            if document.processed_file:
+                processed_name = document.processed_filename()
+                with document.processed_file.open('rb') as processed_stream:
+                    archive.writestr(
+                        f"{entry_prefix}{processed_name}",
+                        processed_stream.read(),
+                    )
+
+    buffer.seek(0)
+    archive_name = slugify(folder.name) or 'folder'
+    filename = f"{archive_name}-{folder.id.hex[:8]}.zip"
+    return FileResponse(
+        buffer,
+        as_attachment=True,
+        filename=filename,
+        content_type='application/zip',
     )
 
 

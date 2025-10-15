@@ -14,6 +14,11 @@ urlpatterns = [
     path('ocr/sterge/<uuid:job_id>/', views.delete_job, name='delete_job'),
     path('biblioteci/', views.libraries, name='libraries'),
     path('biblioteci/<uuid:folder_id>/', views.library_detail, name='library_detail'),
+    path(
+        'biblioteci/<uuid:folder_id>/descarca/',
+        views.download_library_archive,
+        name='download_library_archive',
+    ),
     path('previzualizare/', views.preview_hub, name='preview_hub'),
     path('previzualizare/<uuid:document_id>/', views.preview_document, name='preview'),
     path('previzualizare/<uuid:document_id>/descarca/', views.download_document, name='download_document'),

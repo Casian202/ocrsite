@@ -11,6 +11,7 @@
     --text: #1c1f1d;
     --muted: #6a6f6b;
     --border: rgba(28, 31, 29, 0.08);
+    --border-subtle: rgba(28, 31, 29, 0.12);
     --divider-strong: rgba(28, 31, 29, 0.16);
     --shadow: 0 24px 48px -24px rgba(16, 24, 40, 0.2);
     --card-gradient: radial-gradient(circle at top left, rgba(58, 168, 124, 0.15), transparent 60%);
@@ -51,6 +52,7 @@
     --text: #f4f7f5;
     --muted: #a5ada7;
     --border: rgba(244, 247, 245, 0.12);
+    --border-subtle: rgba(244, 247, 245, 0.2);
     --divider-strong: rgba(244, 247, 245, 0.24);
     --shadow: 0 24px 54px -24px rgba(0, 0, 0, 0.7);
     --card-gradient: radial-gradient(circle at top left, rgba(78, 192, 143, 0.16), transparent 65%);
@@ -425,6 +427,12 @@ a:hover {
     justify-content: space-between;
     align-items: center;
     margin-bottom: 1.5rem;
+}
+
+.section-header__actions {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
 }
 
 .section-header p {
@@ -927,6 +935,134 @@ body.modal-open {
 
 .job-actions {
     margin-left: auto;
+    gap: 0.375rem;
+}
+
+.job-menu {
+    position: relative;
+}
+
+.job-menu__toggle {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 1.35rem;
+    height: 1.35rem;
+    border-radius: 999px;
+    border: 1px solid var(--border-subtle);
+    background: var(--surface);
+    color: var(--muted-text);
+    padding: 0.15rem;
+    cursor: pointer;
+    transition: background 0.2s ease, border-color 0.2s ease, color 0.2s ease, transform 0.15s ease,
+        box-shadow 0.2s ease;
+}
+
+.job-menu__toggle svg {
+    width: 0.75rem;
+    height: 0.75rem;
+    fill: currentColor;
+}
+
+.job-menu__toggle:hover,
+.job-menu__toggle:focus-visible,
+.job-menu.is-open .job-menu__toggle {
+    outline: none;
+    background: var(--primary-soft);
+    border-color: rgba(58, 168, 124, 0.6);
+    color: var(--primary-dark);
+    transform: translateY(-1px);
+    box-shadow: 0 8px 16px rgba(17, 24, 39, 0.12);
+}
+
+.job-menu__panel {
+    position: absolute;
+    bottom: calc(100% + 0.5rem);
+    right: 0;
+    min-width: 9.5rem;
+    padding: 0.5rem;
+    border-radius: 12px;
+    border: 1px solid var(--border);
+    background: var(--surface);
+    box-shadow: 0 16px 32px rgba(15, 23, 42, 0.18);
+    display: block;
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(6px) scale(0.94);
+    transform-origin: top right;
+    z-index: 20;
+}
+
+.job-menu__panel.is-open {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0) scale(1);
+}
+
+.job-menu__panel::before {
+    content: '';
+    position: absolute;
+    bottom: -6px;
+    right: 0.55rem;
+    width: 10px;
+    height: 10px;
+    background: var(--surface);
+    border-right: 1px solid var(--border);
+    border-bottom: 1px solid var(--border);
+    transform: rotate(45deg);
+}
+
+.job-menu__list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(2.25rem, 1fr));
+    gap: 0.375rem;
+    justify-items: center;
+}
+
+.job-menu__action {
+    width: 100%;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.25rem;
+    height: 2.1rem;
+    border-radius: 10px;
+    font: inherit;
+    color: var(--muted-text);
+    background: rgba(148, 163, 184, 0.08);
+    border: none;
+    text-decoration: none;
+    cursor: pointer;
+    transition: background 0.2s ease, color 0.2s ease, transform 0.15s ease;
+}
+
+.job-menu__action svg {
+    width: 0.85rem;
+    height: 0.85rem;
+    fill: currentColor;
+    flex-shrink: 0;
+}
+
+.job-menu__action:hover,
+.job-menu__action:focus-visible {
+    outline: none;
+    background: var(--primary-soft);
+    color: var(--primary-dark);
+    transform: translateY(-1px);
+}
+
+.job-menu__action--danger {
+    color: #dc2626;
+    background: rgba(252, 165, 165, 0.12);
+}
+
+.job-menu__action--danger:hover,
+.job-menu__action--danger:focus-visible {
+    background: rgba(248, 113, 113, 0.18);
+    color: #b91c1c;
 }
 
 .job-menu {
