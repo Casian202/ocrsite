@@ -5,11 +5,13 @@
             <div class="toggle-switch__group-label">{{ group_name }}</div>
         {% endif %}
         {% for option in options %}
-            <label class="toggle-switch">
-                <input type="{{ widget.type }}" name="{{ option.name }}"{% if option.value != None %} value="{{ option.value|stringformat:'s' }}"{% endif %}{% include "django/forms/widgets/attrs.html" with widget=option %}>
-                <span class="toggle-switch__slider" aria-hidden="true"></span>
-                <span class="toggle-switch__text">{{ option.label }}</span>
-            </label>
+            {% with control_id=option.attrs.id %}
+                <div class="toggle-switch">
+                    <input type="{{ widget.type }}" name="{{ option.name }}"{% if option.value != None %} value="{{ option.value|stringformat:'s' }}"{% endif %}{% include "django/forms/widgets/attrs.html" with widget=option %}>
+                    <label{% if control_id %} for="{{ control_id }}"{% endif %} class="toggle-switch__control"></label>
+                    <span class="toggle-switch__text">{{ option.label }}</span>
+                </div>
+            {% endwith %}
         {% endfor %}
     {% endfor %}
 </div>
