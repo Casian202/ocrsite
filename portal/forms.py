@@ -24,6 +24,18 @@ class StyledAuthenticationForm(AuthenticationForm):
                 field.widget.attrs.setdefault('placeholder', 'Parola')
 
 
+class StyledAuthenticationForm(AuthenticationForm):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        for name, field in self.fields.items():
+            existing = field.widget.attrs.get('class', '')
+            field.widget.attrs['class'] = f"{existing} input-control".strip()
+            if name == 'username':
+                field.widget.attrs.setdefault('placeholder', 'Utilizator')
+            elif name == 'password':
+                field.widget.attrs.setdefault('placeholder', 'Parola')
+
+
 class SignUpForm(UserCreationForm):
     email = forms.EmailField(required=True, label='Email de contact')
 

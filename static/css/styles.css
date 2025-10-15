@@ -191,6 +191,10 @@ a:hover {
     color: var(--primary-dark);
 }
 
+.app-logo__text {
+    font-size: 1.1rem;
+}
+
 .account-actions {
     display: flex;
     align-items: center;
@@ -932,6 +936,10 @@ textarea.input-control,
 
     .app-logo {
         justify-content: flex-start;
+    }
+
+    .app-logo__text {
+        font-size: 1rem;
     }
 
     .account-actions {
