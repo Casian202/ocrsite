@@ -146,6 +146,21 @@ class OcrRequestForm(forms.Form):
         return cleaned
 
 
+class JobDestinationForm(forms.Form):
+    destination_folder = forms.ModelChoiceField(
+        queryset=LibraryFolder.objects.none(),
+        label='Selectează folderul',
+        help_text='Alege folderul în care va fi arhivat documentul procesat.',
+    )
+
+    def __init__(self, *args, **kwargs):
+        user = kwargs.pop('user', None)
+        super().__init__(*args, **kwargs)
+        if user is not None:
+            self.fields['destination_folder'].queryset = user.library_folders.all()
+        self.fields['destination_folder'].widget.attrs.update({'class': 'input-control'})
+
+
 class FolderForm(forms.ModelForm):
     class Meta:
         model = LibraryFolder

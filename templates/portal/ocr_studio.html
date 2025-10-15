@@ -82,6 +82,9 @@
                         <div>
                             <h3>{{ job.processed_filename|default:job.source_file.name }}</h3>
                             <p class="muted">Creat {{ job.created_at|date:"d.m.Y H:i" }} · Limbi: {{ job.language_labels }}</p>
+                            {% if job.destination_folder %}
+                                <p class="muted">Arhivat în: {{ job.destination_folder.name }}</p>
+                            {% endif %}
                             {% if job.error_message %}
                                 <p class="error-text">{{ job.error_message }}</p>
                             {% endif %}
@@ -89,6 +92,7 @@
                         <div class="job-actions">
                             {% if job.status == 'completed' %}
                                 <a href="{% url 'portal:download_job' job.id %}" class="chip-button">Descarcă PDF</a>
+                                <a href="{% url 'portal:assign_job_folder' job.id %}" class="chip-button chip-button--accent">Salvează în folder</a>
                                 {% if job.sidecar_file %}
                                     <a href="{% url 'portal:download_sidecar' job.id %}" class="chip-button chip-button--ghost">Sidecar</a>
                                 {% endif %}
