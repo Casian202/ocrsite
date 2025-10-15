@@ -361,3 +361,8 @@ MigrationBackup/
 
 # Fody - auto-generated XML schema
 FodyWeavers.xsd
+
+# Django runtime artifacts
+db.sqlite3
+media/*
+!media/.gitkeep

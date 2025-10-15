@@ -67,7 +67,7 @@ Aplicatia este disponibila la `http://localhost:8000/`. Pagina de autentificare 
 - `portal/` – aplicatia Django cu modele, formulare, views si URL-uri.
 - `templates/` – layout global si pagini pentru autentificare si panou.
 - `static/` – fisiere CSS pentru interfata.
-- `media/uploads/`, `media/processed/` – directoare create automat de Django pentru fisierele incarcate si rezultatele OCR.
+- `media/` – director creat automat la rulare pentru fisierele incarcate si rezultatele OCR.
 - `deploy/nginx/` – configuratia nginx folosita de docker compose pentru a servi aplicatia si fisierele statice.
 
 ## Docker pe Ubuntu 24.04
@@ -86,7 +86,6 @@ Aplicatia este disponibila la `http://localhost:8000/`. Pagina de autentificare 
    git clone <repo>
    cd ocrsite
    cp .env.example .env
-   touch db.sqlite3
    ```
 
    > Editeaza `.env` pentru a seta `DJANGO_SECRET_KEY`, lista de domenii acceptate (`DJANGO_ALLOWED_HOSTS`), baza URL a site-ului (`SITE_BASE_URL`) si origini de incredere pentru CSRF (`CSRF_TRUSTED_ORIGINS`).
@@ -99,22 +98,35 @@ Aplicatia este disponibila la `http://localhost:8000/`. Pagina de autentificare 
 
    > Daca Docling nu este instalat, optiunea ramane indisponibila in consola de administrare.
 
-4. Porneste serviciile (aplicatie Django + proxy nginx):
+4. Construieste imaginile si pregateste baza de date:
 
    ```bash
-   docker compose up --build -d
+   docker compose build
+   docker compose run --rm web python manage.py migrate
+   docker compose run --rm web python manage.py collectstatic --noinput
+   docker compose run --rm web python manage.py createsuperuser
+   ```
+
+   > `createsuperuser` este optional dar recomandat la prima rulare pentru a putea accesa interfata web.
+
+   > La pornire, containerul `web` ruleaza oricum `migrate` si `collectstatic`; comenzile de mai sus asigura doar initializarea manuala a bazei de date.
+
+5. Porneste serviciile (aplicatie Django + proxy nginx):
+
+   ```bash
+   docker compose up -d
    ```
 
    Serviciul `web` ruleaza `gunicorn` pe portul intern `8000`, iar nginx expune acelasi port catre gazda, servind resursele statice si media din volumele partajate.
 
-5. Verifica log-urile si statusul:
+6. Verifica log-urile si statusul:
 
    ```bash
    docker compose logs -f
    docker compose ps
    ```
 
-6. Opreste serviciul:
+7. Opreste serviciul:
 
    ```bash
    docker compose down
