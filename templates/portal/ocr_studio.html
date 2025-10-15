@@ -97,11 +97,32 @@
     </article>
 
     <article class="card">
-        <h2>Istoric ultimele procesări</h2>
+        <div class="card-header-row">
+            <h2>Istoric ultimele procesări</h2>
+            {% if jobs %}
+                <div class="job-history-tools">
+                    <label class="sr-only" for="job-history-search">Caută în istoricul procesărilor</label>
+                    <input
+                        type="search"
+                        id="job-history-search"
+                        class="job-search"
+                        placeholder="Caută procesări"
+                        autocomplete="off"
+                        data-job-search
+                        aria-label="Caută în istoricul procesărilor"
+                    />
+                </div>
+            {% endif %}
+        </div>
         {% if jobs %}
-            <div class="job-list">
+            <ul class="job-list" data-job-list>
                 {% for job in jobs %}
-                    <div class="job-item job-item--{{ job.status }}">
+                    <li
+                        class="job-item job-item--{{ job.status }}"
+                        data-job-item
+                        data-job-title="{{ job.processed_filename|default:job.source_file.name|escape }}"
+                        data-job-meta="{{ job.language_labels|escape }}{% if job.destination_folder %} {{ job.destination_folder.name|escape }}{% endif %}"
+                    >
                         <div class="job-item__details">
                             <h3 class="job-item__title">{{ job.processed_filename|default:job.source_file.name }}</h3>
                             <p class="muted">Creat {{ job.created_at|date:"d.m.Y H:i" }} · Limbi: {{ job.language_labels }}</p>
@@ -112,20 +133,66 @@
                                 <p class="error-text">{{ job.error_message }}</p>
                             {% endif %}
                         </div>
-                        <div class="job-actions">
+                        <div class="job-actions" role="group" aria-label="Acțiuni procesare">
+                            <span class="status-chip status-chip--{{ job.status }}">{{ job.get_status_display }}</span>
                             {% if job.status == 'completed' %}
-                                <a href="{% url 'portal:download_job' job.id %}" class="chip-button">Descarcă PDF</a>
-                                <a href="{% url 'portal:assign_job_folder' job.id %}" class="chip-button chip-button--accent">Salvează în folder</a>
+                                <a
+                                    href="{% url 'portal:download_job' job.id %}"
+                                    class="icon-button"
+                                    title="Descarcă PDF procesat"
+                                >
+                                    <svg aria-hidden="true" focusable="false" viewBox="0 0 24 24">
+                                        <path d="M12 3a1 1 0 0 1 1 1v8.586l2.293-2.293a1 1 0 1 1 1.414 1.414l-4 4a1 1 0 0 1-1.414 0l-4-4a1 1 0 1 1 1.414-1.414L11 12.586V4a1 1 0 0 1 1-1zM5 17a1 1 0 0 1 1-1h12a1 1 0 1 1 0 2H6a1 1 0 0 1-1-1z" />
+                                    </svg>
+                                    <span class="sr-only">Descarcă PDF</span>
+                                </a>
+                                <a
+                                    href="{% url 'portal:assign_job_folder' job.id %}"
+                                    class="icon-button icon-button--accent"
+                                    title="Salvează documentul într-un folder"
+                                >
+                                    <svg aria-hidden="true" focusable="false" viewBox="0 0 24 24">
+                                        <path d="M3 6a2 2 0 0 1 2-2h5.172a2 2 0 0 1 1.414.586L12.586 6H19a2 2 0 0 1 2 2v8a3 3 0 0 1-3 3H6a3 3 0 0 1-3-3V6zm2 0v10a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V9H11.414l-2-2H5z" />
+                                    </svg>
+                                    <span class="sr-only">Salvează în folder</span>
+                                </a>
                                 {% if job.sidecar_file %}
-                                    <a href="{% url 'portal:download_sidecar' job.id %}" class="chip-button chip-button--ghost">Sidecar</a>
+                                    <a
+                                        href="{% url 'portal:download_sidecar' job.id %}"
+                                        class="icon-button icon-button--ghost"
+                                        title="Descarcă fișierul text (sidecar)"
+                                    >
+                                        <svg aria-hidden="true" focusable="false" viewBox="0 0 24 24">
+                                            <path d="M7 2a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V9.828a2 2 0 0 0-.586-1.414l-4.828-4.828A2 2 0 0 0 12.172 3H7zm7 2.414L17.586 8H14a1 1 0 0 1-1-1V4.414zM9 11h6a1 1 0 1 1 0 2H9a1 1 0 1 1 0-2zm0 4h4a1 1 0 1 1 0 2H9a1 1 0 0 1 0-2z" />
+                                        </svg>
+                                        <span class="sr-only">Descarcă sidecar</span>
+                                    </a>
                                 {% endif %}
-                            {% else %}
-                                <span class="status-chip status-chip--{{ job.status }}">{{ job.get_status_display }}</span>
                             {% endif %}
+                            <form
+                                method="post"
+                                action="{% url 'portal:delete_job' job.id %}"
+                                class="job-delete-form"
+                                data-confirm-delete
+                                data-job-name="{{ job.processed_filename|default:job.source_file.name|escape }}"
+                            >
+                                {% csrf_token %}
+                                <button
+                                    type="submit"
+                                    class="icon-button icon-button--danger"
+                                    title="Șterge procesarea din istoric"
+                                >
+                                    <svg aria-hidden="true" focusable="false" viewBox="0 0 24 24">
+                                        <path d="M9 3a1 1 0 0 0-1 1v1H5a1 1 0 1 0 0 2h1v12a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2V7h1a1 1 0 1 0 0-2h-3V4a1 1 0 0 0-1-1H9zm1 3h4V5h-4v1zm-1 3a1 1 0 0 1 2 0v8a1 1 0 1 1-2 0V9zm6-1a1 1 0 0 1 1 1v8a1 1 0 1 1-2 0V9a1 1 0 0 1 1-1z" />
+                                    </svg>
+                                    <span class="sr-only">Șterge</span>
+                                </button>
+                            </form>
                         </div>
-                    </div>
+                    </li>
                 {% endfor %}
-            </div>
+            </ul>
+            <p class="muted job-empty" data-job-empty hidden>Nu există rezultate pentru căutarea curentă.</p>
         {% else %}
             <p class="muted">Nu există încă procesări. Încarcă un PDF pentru a porni primul job.</p>
         {% endif %}
@@ -245,6 +312,71 @@
             button.addEventListener('click', (event) => {
                 event.preventDefault();
                 closeAdvanced();
+            });
+        });
+
+        const jobList = document.querySelector('[data-job-list]');
+        const jobSearchInput = document.querySelector('[data-job-search]');
+        const jobEmptyState = document.querySelector('[data-job-empty]');
+        const jobItems = jobList ? Array.from(jobList.querySelectorAll('[data-job-item]')) : [];
+
+        const normalizeText = (value) =>
+            (value || '')
+                .toString()
+                .normalize('NFD')
+                .replace(/[\u0300-\u036f]/g, '')
+                .toLowerCase();
+
+        const filterJobItems = () => {
+            if (!jobItems.length) {
+                return;
+            }
+
+            const term = normalizeText(jobSearchInput ? jobSearchInput.value.trim() : '');
+            let visibleCount = 0;
+
+            jobItems.forEach((item) => {
+                const haystack = normalizeText(
+                    `${item.dataset.jobTitle || ''} ${item.dataset.jobMeta || ''}`,
+                );
+                const matches = !term || haystack.includes(term);
+                item.hidden = !matches;
+                if (matches) {
+                    visibleCount += 1;
+                }
+            });
+
+            if (jobEmptyState) {
+                jobEmptyState.hidden = visibleCount !== 0;
+            }
+        };
+
+        if (jobSearchInput && jobItems.length) {
+            jobSearchInput.addEventListener('input', () => {
+                filterJobItems();
+                if (jobList) {
+                    jobList.scrollTop = 0;
+                }
+            });
+            jobSearchInput.addEventListener('search', () => {
+                filterJobItems();
+                if (jobList) {
+                    jobList.scrollTop = 0;
+                }
+            });
+            filterJobItems();
+        }
+
+        const jobDeleteForms = document.querySelectorAll('[data-confirm-delete]');
+        jobDeleteForms.forEach((form) => {
+            form.addEventListener('submit', (event) => {
+                const name = form.dataset.jobName || 'această procesare';
+                const shouldDelete = window.confirm(
+                    `Sigur ștergi ${name} din istoricul procesărilor?`,
+                );
+                if (!shouldDelete) {
+                    event.preventDefault();
+                }
             });
         });
 
