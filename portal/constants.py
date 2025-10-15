@@ -14,12 +14,12 @@ LANGUAGE_LOOKUP = {code: label for code, label in LANGUAGE_CHOICES}
 
 
 MENU_CHOICES = [
-    ('home', 'Guided Home'),
+    ('home', 'Instrucțiuni'),
     ('ocr', 'OCR Studio'),
-    ('libraries', 'Document Libraries'),
-    ('preview', 'Document Preview'),
+    ('libraries', 'Biblioteci'),
+    ('preview', 'Previzualizare'),
     ('word', 'Word Studio'),
-    ('admin', 'Admin Console'),
+    ('admin', 'Consolă Admin'),
 ]
 
 
