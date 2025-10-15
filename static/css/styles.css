@@ -760,7 +760,7 @@ textarea.input-control,
     display: none;
 }
 
-.toggle-switch__control {
+.toggle-switch__track {
     position: relative;
     display: block;
     width: var(--toggle-width);
@@ -771,7 +771,7 @@ textarea.input-control,
     transition: background-color 0.4s ease;
 }
 
-.toggle-switch__control::before {
+.toggle-switch__track::before {
     content: "";
     position: absolute;
     width: calc(var(--toggle-height) - 8px);
@@ -784,24 +784,24 @@ textarea.input-control,
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
 }
 
-.toggle-switch__control:hover {
+.toggle-switch__track:hover {
     background-color: color-mix(in srgb, var(--toggle-off, #555) 75%, transparent);
 }
 
-.toggle-switch input:checked + .toggle-switch__control {
+.toggle-switch input:checked + .toggle-switch__track {
     background-color: #00acee;
 }
 
-.toggle-switch input:checked + .toggle-switch__control::before {
+.toggle-switch input:checked + .toggle-switch__track::before {
     transform: translateX(calc(var(--toggle-width) - var(--toggle-height)));
 }
 
-.toggle-switch input:focus-visible + .toggle-switch__control {
+.toggle-switch input:focus-visible + .toggle-switch__track {
     outline: 3px solid color-mix(in srgb, var(--accent) 45%, transparent);
     outline-offset: 3px;
 }
 
-.toggle-switch__text {
+.toggle-switch__caption {
     font-size: 0.95rem;
     line-height: 1.25;
 }
@@ -812,7 +812,7 @@ textarea.input-control,
         --toggle-height: 42px;
         gap: 0.65rem;
     }
-    .toggle-switch__text {
+    .toggle-switch__caption {
         font-size: 0.9rem;
     }
 }
