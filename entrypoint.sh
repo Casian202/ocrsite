@@ -1,7 +1,7 @@
 #!/bin/sh
 set -e
 
-mkdir -p /app/staticfiles /app/media
+mkdir -p /app/staticfiles /app/media /app/data
 
 python manage.py migrate --noinput
 python manage.py collectstatic --noinput

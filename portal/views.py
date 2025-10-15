@@ -113,7 +113,11 @@ def ocr_studio(request):
 
         return redirect('portal:ocr')
 
-    jobs = OcrJob.objects.filter(user=request.user)[:25]
+    jobs = (
+        OcrJob.objects.filter(user=request.user)
+        .select_related('destination_folder')
+        .order_by('-created_at')
+    )
     settings_obj = PortalSettings.load()
     engine_key = settings_obj.ocr_engine or PortalSettings.OcrEngine.OCRMYPDF
     engine_label = settings_obj.get_ocr_engine_display()
@@ -356,6 +360,26 @@ def assign_job_folder(request, job_id):
     )
 
 
+@portal_menu_required('ocr')
+def delete_job(request, job_id):
+    job = get_object_or_404(OcrJob, id=job_id, user=request.user)
+
+    if request.method != 'POST':
+        messages.info(request, 'Selectează „Șterge” pentru a elimina procesarea din istoric.')
+        return redirect('portal:ocr')
+
+    if job.source_file:
+        job.source_file.delete(save=False)
+    if job.processed_file:
+        job.processed_file.delete(save=False)
+    if job.sidecar_file:
+        job.sidecar_file.delete(save=False)
+
+    job.delete()
+    messages.success(request, 'Procesarea a fost eliminată din istoric.')
+    return redirect('portal:ocr')
+
+
 @portal_menu_required('admin')
 def admin_console(request):
     if not request.user.is_staff:
@@ -415,6 +439,61 @@ def admin_console(request):
             'portal_settings': settings_obj,
         },
     )
+
+
+def _archive_job_to_folder(job: OcrJob, folder: LibraryFolder) -> StoredDocument:
+    if folder is None:
+        raise ValueError('Selectează un folder valid pentru arhivare.')
+
+    if folder.user_id != job.user_id:
+        raise ValueError('Nu poți salva documentul într-un folder care nu îți aparține.')
+
+    if job.status != OcrJob.Status.COMPLETED:
+        raise ValueError('Documentul trebuie procesat înainte de arhivare.')
+
+    if not job.source_file:
+        raise ValueError('Fișierul original nu este disponibil pentru arhivare.')
+
+    if not job.processed_file:
+        raise ValueError('Fișierul procesat nu este disponibil pentru arhivare.')
+
+    title_source = job.processed_filename() or Path(job.source_file.name).stem or 'Document OCR'
+    document, _ = StoredDocument.objects.get_or_create(
+        ocr_job=job,
+        defaults={'folder': folder, 'title': title_source},
+    )
+
+    if document.folder_id != folder.id:
+        document.folder = folder
+
+    if not document.title:
+        document.title = title_source
+
+    original_name = Path(job.source_file.name).name
+    processed_name = Path(job.processed_file.name).name
+
+    if document.original_file and document.original_file.name:
+        document.original_file.delete(save=False)
+
+    with job.source_file.open('rb') as original_stream:
+        document.original_file.save(
+            f"{job.id}_{original_name}",
+            File(original_stream),
+            save=False,
+        )
+
+    if document.processed_file and document.processed_file.name:
+        document.processed_file.delete(save=False)
+
+    with job.processed_file.open('rb') as processed_stream:
+        document.processed_file.save(
+            f"{job.id}_{processed_name}",
+            File(processed_stream),
+            save=False,
+        )
+
+    document.save()
+    return document
 
 
 def _run_ocr(job: OcrJob) -> ProcessingResult:
@@ -488,7 +567,7 @@ def _run_with_ocrmypdf(job: OcrJob) -> ProcessingResult:
             'rotate_pages': options.get('rotate_pages', False),
             'remove_background': options.get('remove_background', False),
             'clean_final': options.get('clean_final', False),
-            'skip_text': options.get('skip_text', False),
+            'skip_text': options.get('skip_text', True),
             'force_ocr': options.get('force_ocr', False),
             'output_type': options.get('output_type') or 'pdfa',
             'progress_bar': False,
