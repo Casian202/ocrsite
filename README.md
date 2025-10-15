@@ -109,7 +109,7 @@ Aplicatia este disponibila la `http://localhost:8000/`. Pagina de autentificare 
 
    > `createsuperuser` este optional dar recomandat la prima rulare pentru a putea accesa interfata web.
 
-   > La pornire, containerul `web` ruleaza oricum `migrate` si `collectstatic`; comenzile de mai sus asigura doar initializarea manuala a bazei de date.
+   > La pornire, containerul `web` ruleaza oricum `migrate` si `collectstatic`; comenzile de mai sus asigura doar initializarea manuala a bazei de date. Baza de date SQLite este salvata in directorul `data/` din container si persista intr-un volum Docker (`dbdata`), astfel incat o instalare noua nu contine fisiere generate anterior.
 
 5. Porneste serviciile (aplicatie Django + proxy nginx):
 
