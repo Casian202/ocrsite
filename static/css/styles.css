@@ -38,10 +38,6 @@
     font-family: 'Inter', 'Segoe UI', system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
 }
 
-:root:has(#theme-toggle-input:checked) {
-    color-scheme: dark;
-}
-
 :root[data-theme="dark"] {
     color-scheme: dark;
     --bg: #101412;
@@ -268,247 +264,50 @@ a:hover {
 }
 
 .theme-toggle {
-    --scale: 1.15;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 0.15rem 0;
+    margin-right: 0.75rem;
 }
 
-.theme-toggle__container {
+.theme-toggle__button {
     display: inline-flex;
     align-items: center;
-    justify-content: center;
-}
-
-.theme-toggle .switch {
-    position: relative;
-    display: inline-block;
-    width: calc(var(--scale) * 60px);
-    height: calc(var(--scale) * 34px);
-}
-
-.theme-toggle .switch input {
-    opacity: 0;
-    width: 0;
-    height: 0;
-}
-
-.theme-toggle .slider {
-    position: absolute;
-    inset: 0;
+    gap: 0.4rem;
+    padding: 0.35rem 0.9rem;
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    background: var(--surface);
+    color: var(--text);
+    font-size: 0.95rem;
+    font-weight: 600;
     cursor: pointer;
-    background-color: #2196f3;
-    transition: 0.4s;
-    border-radius: calc(var(--scale) * 34px);
-    overflow: hidden;
+    transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease;
 }
 
-.theme-toggle .sun-moon {
-    position: absolute;
-    height: calc(var(--scale) * 26px);
-    width: calc(var(--scale) * 26px);
-    left: calc(var(--scale) * 4px);
-    bottom: calc(var(--scale) * 4px);
-    background-color: yellow;
-    border-radius: 50%;
-    transition: 0.4s;
+.theme-toggle__button:hover,
+.theme-toggle__button:focus-visible {
+    background: var(--surface-muted);
+    border-color: var(--divider-strong);
 }
 
-.theme-toggle .slider.round {
-    border-radius: calc(var(--scale) * 34px);
+.theme-toggle__icon {
+    font-size: 1rem;
+    line-height: 1;
 }
 
-.theme-toggle #theme-toggle-input:checked + .slider {
-    background-color: black;
+.theme-toggle__label {
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    font-size: 0.75rem;
 }
 
-.theme-toggle #theme-toggle-input:focus-visible + .slider {
-    box-shadow: 0 0 calc(var(--scale) * 1px) #2196f3;
+.theme-toggle__button[data-theme="dark"] .theme-toggle__icon--light {
+    opacity: 0.5;
 }
 
-.theme-toggle #theme-toggle-input:checked + .slider .sun-moon {
-    transform: translateX(calc(var(--scale) * 26px));
-    background-color: white;
-    animation: rotate-center 0.6s ease-in-out both;
+.theme-toggle__button[data-theme="light"] .theme-toggle__icon--dark {
+    opacity: 0.5;
 }
 
-.theme-toggle .moon-dot {
-    opacity: 0;
-    transition: 0.4s;
-    fill: gray;
-}
 
-.theme-toggle #theme-toggle-input:checked + .slider .sun-moon .moon-dot {
-    opacity: 1;
-}
-
-.theme-toggle .light-ray {
-    position: absolute;
-    z-index: -1;
-    fill: white;
-    opacity: 10%;
-}
-
-.theme-toggle #light-ray-1 {
-    left: calc(var(--scale) * -8px);
-    top: calc(var(--scale) * -8px);
-    width: calc(var(--scale) * 43px);
-    height: calc(var(--scale) * 43px);
-}
-
-.theme-toggle #light-ray-2 {
-    left: -50%;
-    top: -50%;
-    width: calc(var(--scale) * 55px);
-    height: calc(var(--scale) * 55px);
-}
-
-.theme-toggle #light-ray-3 {
-    left: calc(var(--scale) * -18px);
-    top: calc(var(--scale) * -18px);
-    width: calc(var(--scale) * 60px);
-    height: calc(var(--scale) * 60px);
-}
-
-.theme-toggle .cloud-light,
-.theme-toggle .cloud-dark {
-    position: absolute;
-    animation-name: cloud-move;
-    animation-duration: 6s;
-    animation-iteration-count: infinite;
-}
-
-.theme-toggle .cloud-light {
-    fill: #eee;
-}
-
-.theme-toggle .cloud-dark {
-    fill: #ccc;
-    animation-delay: 1s;
-}
-
-.theme-toggle #cloud-1 {
-    left: calc(var(--scale) * 30px);
-    top: calc(var(--scale) * 15px);
-    width: calc(var(--scale) * 40px);
-}
-
-.theme-toggle #cloud-2 {
-    left: calc(var(--scale) * 44px);
-    top: calc(var(--scale) * 10px);
-    width: calc(var(--scale) * 20px);
-}
-
-.theme-toggle #cloud-3 {
-    left: calc(var(--scale) * 18px);
-    top: calc(var(--scale) * 24px);
-    width: calc(var(--scale) * 30px);
-}
-
-.theme-toggle #cloud-4 {
-    left: calc(var(--scale) * 36px);
-    top: calc(var(--scale) * 18px);
-    width: calc(var(--scale) * 40px);
-}
-
-.theme-toggle #cloud-5 {
-    left: calc(var(--scale) * 48px);
-    top: calc(var(--scale) * 14px);
-    width: calc(var(--scale) * 20px);
-}
-
-.theme-toggle #cloud-6 {
-    left: calc(var(--scale) * 22px);
-    top: calc(var(--scale) * 26px);
-    width: calc(var(--scale) * 30px);
-}
-
-@keyframes cloud-move {
-    0% {
-        transform: translateX(0px);
-    }
-    40% {
-        transform: translateX(calc(var(--scale) * 4px));
-    }
-    80% {
-        transform: translateX(calc(var(--scale) * -4px));
-    }
-    100% {
-        transform: translateX(0px);
-    }
-}
-
-.theme-toggle .stars {
-    transform: translateY(calc(var(--scale) * -32px));
-    opacity: 0;
-    transition: 0.4s;
-}
-
-.theme-toggle .star {
-    fill: white;
-    position: absolute;
-    transition: 0.4s;
-    animation-name: star-twinkle;
-    animation-duration: 2s;
-    animation-iteration-count: infinite;
-}
-
-.theme-toggle #theme-toggle-input:checked + .slider .stars {
-    transform: translateY(0);
-    opacity: 1;
-}
-
-.theme-toggle #star-1 {
-    width: calc(var(--scale) * 20px);
-    top: calc(var(--scale) * 2px);
-    left: calc(var(--scale) * 3px);
-    animation-delay: 0.3s;
-}
-
-.theme-toggle #star-2 {
-    width: calc(var(--scale) * 6px);
-    top: calc(var(--scale) * 16px);
-    left: calc(var(--scale) * 3px);
-}
-
-.theme-toggle #star-3 {
-    width: calc(var(--scale) * 12px);
-    top: calc(var(--scale) * 20px);
-    left: calc(var(--scale) * 10px);
-    animation-delay: 0.6s;
-}
-
-.theme-toggle #star-4 {
-    width: calc(var(--scale) * 18px);
-    top: calc(var(--scale) * 0px);
-    left: calc(var(--scale) * 18px);
-    animation-delay: 1.3s;
-}
-
-@keyframes star-twinkle {
-    0% {
-        transform: scale(1);
-    }
-    40% {
-        transform: scale(1.2);
-    }
-    80% {
-        transform: scale(0.8);
-    }
-    100% {
-        transform: scale(1);
-    }
-}
-
-@keyframes rotate-center {
-    0% {
-        transform: rotate(0);
-    }
-    100% {
-        transform: rotate(360deg);
-    }
-}
 
 .primary-button,
 .secondary-button {
