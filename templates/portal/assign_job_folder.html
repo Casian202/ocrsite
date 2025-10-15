@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+
+{% block title %}Alocă în folder | OCR Workspace{% endblock %}
+
+{% block content %}
+<section class="card narrow-card">
+    <h1>Alocă documentul în bibliotecă</h1>
+    <p class="muted">Selectează un folder din bibliotecă pentru a salva rezultatul jobului <strong>{{ job.processed_filename|default:job.source_file.name }}</strong>.</p>
+    <form method="post" class="form-grid">
+        {% csrf_token %}
+        <div class="form-field full-width">
+            {{ form.destination_folder.label_tag }}
+            {{ form.destination_folder }}
+            <small class="help-text">{{ form.destination_folder.help_text }}</small>
+            {{ form.destination_folder.errors }}
+        </div>
+        <div class="form-actions">
+            <a href="{% url 'portal:ocr' %}" class="chip-button chip-button--ghost">Renunță</a>
+            <button type="submit" class="primary-button">Salvează în folder</button>
+        </div>
+    </form>
+</section>
+{% endblock %}

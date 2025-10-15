@@ -18,6 +18,7 @@ from .decorators import portal_menu_required
 from .forms import (
     AccessApprovalForm,
     FolderForm,
+    JobDestinationForm,
     LibraryDocumentForm,
     OcrRequestForm,
     PdfToWordForm,
@@ -311,6 +312,50 @@ def download_sidecar(request, job_id):
     )
 
 
+@portal_menu_required('ocr')
+def assign_job_folder(request, job_id):
+    job = get_object_or_404(OcrJob, id=job_id, user=request.user)
+
+    if job.status != OcrJob.Status.COMPLETED:
+        messages.error(request, 'Documentul trebuie procesat înainte de a fi arhivat într-un folder.')
+        return redirect('portal:ocr')
+
+    form = JobDestinationForm(
+        request.POST or None,
+        user=request.user,
+        initial={'destination_folder': job.destination_folder},
+    )
+
+    if request.method == 'POST' and form.is_valid():
+        folder = form.cleaned_data['destination_folder']
+        try:
+            stored = _archive_job_to_folder(job, folder)
+        except ValueError as exc:
+            form.add_error('destination_folder', str(exc))
+        else:
+            job.destination_folder = folder
+            job.save(update_fields=['destination_folder', 'updated_at'])
+            messages.success(
+                request,
+                f'Documentul a fost salvat în folderul „{folder.name}”.',
+            )
+            if stored.processed_file:
+                messages.info(
+                    request,
+                    'Versiunea procesată este disponibilă în bibliotecă împreună cu fișierul original.',
+                )
+            return redirect('portal:ocr')
+
+    return render(
+        request,
+        'portal/assign_job_folder.html',
+        {
+            'form': form,
+            'job': job,
+        },
+    )
+
+
 @portal_menu_required('admin')
 def admin_console(request):
     if not request.user.is_staff:
@@ -403,25 +448,10 @@ def _run_ocr(job: OcrJob) -> ProcessingResult:
         result = _run_with_ocrmypdf(job)
 
     if job.destination_folder and job.status == OcrJob.Status.COMPLETED:
-        stored = StoredDocument(
-            folder=job.destination_folder,
-            ocr_job=job,
-            title=Path(job.source_file.name).stem,
-        )
-        with job.source_file.open('rb') as original_stream:
-            stored.original_file.save(
-                Path(job.source_file.name).name,
-                File(original_stream),
-                save=False,
-            )
-        if job.processed_file:
-            with job.processed_file.open('rb') as processed_stream:
-                stored.processed_file.save(
-                    job.processed_filename(),
-                    File(processed_stream),
-                    save=False,
-                )
-        stored.save()
+        try:
+            _archive_job_to_folder(job, job.destination_folder)
+        except ValueError:
+            log.warning('Job %s nu poate fi salvat în folderul selectat.', job.id)
 
     return result
 
@@ -688,8 +718,8 @@ def _convert_pdf_to_word(user, title: str, pdf_file) -> WordDocument:
 
     text_content = ''
     if job.sidecar_file:
-        with job.sidecar_file.open('r', encoding='utf-8', errors='ignore') as sidecar:
-            text_content = sidecar.read()
+        with job.sidecar_file.open('rb') as sidecar:
+            text_content = sidecar.read().decode('utf-8', errors='ignore')
 
     document = Document()
     document.add_heading(title, level=1)
