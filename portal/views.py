@@ -417,49 +417,6 @@ def admin_console(request):
     )
 
 
-def _archive_job_to_folder(job: OcrJob, folder: LibraryFolder) -> StoredDocument:
-    if folder.user_id != job.user_id:
-        raise ValueError('Nu poți salva documentul într-un folder care nu îți aparține.')
-
-    title = Path(job.processed_filename() or Path(job.source_file.name).name).stem
-    stored, created = StoredDocument.objects.get_or_create(
-        folder=folder,
-        ocr_job=job,
-        defaults={'title': title},
-    )
-
-    if not created and not stored.title:
-        stored.title = title
-
-    if stored.original_file:
-        stored.original_file.delete(save=False)
-
-    with job.source_file.open('rb') as original_stream:
-        stored.original_file.save(
-            Path(job.source_file.name).name,
-            File(original_stream),
-            save=False,
-        )
-
-    if job.processed_file:
-        if stored.processed_file:
-            stored.processed_file.delete(save=False)
-        filename = job.processed_filename() or f"{title}_ocr.pdf"
-        with job.processed_file.open('rb') as processed_stream:
-            stored.processed_file.save(
-                filename,
-                File(processed_stream),
-                save=False,
-            )
-    elif stored.processed_file:
-        stored.processed_file.delete(save=False)
-        stored.processed_file = None
-
-    stored.title = stored.title or title
-    stored.save()
-    return stored
-
-
 def _run_ocr(job: OcrJob) -> ProcessingResult:
     settings_obj = PortalSettings.load()
     engine = settings_obj.ocr_engine or PortalSettings.OcrEngine.OCRMYPDF
