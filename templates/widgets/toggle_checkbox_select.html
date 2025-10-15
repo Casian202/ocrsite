@@ -1,0 +1,16 @@
+{% with container_id=widget.attrs.id container_class=widget.attrs.class %}
+<div{% if container_id %} id="{{ container_id }}"{% endif %} class="toggle-switch-list{% if container_class %} {{ container_class }}{% endif %}">
+    {% for group_name, options, index in widget.optgroups %}
+        {% if group_name %}
+            <div class="toggle-switch__group-label">{{ group_name }}</div>
+        {% endif %}
+        {% for option in options %}
+            <label class="toggle-switch">
+                <input type="{{ widget.type }}" name="{{ option.name }}"{% if option.value != None %} value="{{ option.value|stringformat:'s' }}"{% endif %}{% include "django/forms/widgets/attrs.html" with widget=option %}>
+                <span class="toggle-switch__slider" aria-hidden="true"></span>
+                <span class="toggle-switch__text">{{ option.label }}</span>
+            </label>
+        {% endfor %}
+    {% endfor %}
+</div>
+{% endwith %}

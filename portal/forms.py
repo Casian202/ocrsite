@@ -9,6 +9,19 @@ from django.core.validators import FileExtensionValidator
 
 from .constants import FOLDER_COLOR_CHOICES, LANGUAGE_CHOICES, MENU_CHOICES
 from .models import LibraryFolder, PortalAccess, PortalSettings, StoredDocument, WordDocument
+from .widgets import ToggleCheckboxSelectMultiple, ToggleSwitchInput
+
+
+class StyledAuthenticationForm(AuthenticationForm):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        for name, field in self.fields.items():
+            existing = field.widget.attrs.get('class', '')
+            field.widget.attrs['class'] = f"{existing} input-control".strip()
+            if name == 'username':
+                field.widget.attrs.setdefault('placeholder', 'Utilizator')
+            elif name == 'password':
+                field.widget.attrs.setdefault('placeholder', 'Parola')
 
 
 class StyledAuthenticationForm(AuthenticationForm):
@@ -55,6 +68,7 @@ class OcrRequestForm(forms.Form):
         required=False,
         initial=True,
         label='Detectare automată a limbilor',
+        widget=ToggleSwitchInput(),
     )
     optimize_level = forms.IntegerField(
         min_value=0,
@@ -63,17 +77,37 @@ class OcrRequestForm(forms.Form):
         label='Nivel optimizare',
         help_text='Valoare între 0 și 3 transmisă către OCRmyPDF (--optimize).',
     )
-    deskew = forms.BooleanField(required=False, initial=True, label='Corectează alinierea paginilor')
-    rotate_pages = forms.BooleanField(required=False, initial=True, label='Detecție automată rotire pagini')
-    remove_background = forms.BooleanField(required=False, label='Elimină fundalul')
-    clean_final = forms.BooleanField(required=False, label='Curățare finală a imaginilor')
+    deskew = forms.BooleanField(
+        required=False,
+        initial=True,
+        label='Corectează alinierea paginilor',
+        widget=ToggleSwitchInput(),
+    )
+    rotate_pages = forms.BooleanField(
+        required=False,
+        initial=True,
+        label='Detecție automată rotire pagini',
+        widget=ToggleSwitchInput(),
+    )
+    remove_background = forms.BooleanField(
+        required=False,
+        label='Elimină fundalul',
+        widget=ToggleSwitchInput(),
+    )
+    clean_final = forms.BooleanField(
+        required=False,
+        label='Curățare finală a imaginilor',
+        widget=ToggleSwitchInput(),
+    )
     skip_text = forms.BooleanField(
         required=False,
         label='Sari peste paginile care au deja text (skip-text)',
+        widget=ToggleSwitchInput(),
     )
     force_ocr = forms.BooleanField(
         required=False,
         label='Forcează OCR chiar dacă există text',
+        widget=ToggleSwitchInput(),
     )
     output_type = forms.ChoiceField(
         choices=[
@@ -89,6 +123,7 @@ class OcrRequestForm(forms.Form):
     make_sidecar = forms.BooleanField(
         required=False,
         label='Generează fișier sidecar (.txt)',
+        widget=ToggleSwitchInput(),
     )
     destination_folder = forms.ModelChoiceField(
         queryset=LibraryFolder.objects.none(),
@@ -117,6 +152,11 @@ class OcrRequestForm(forms.Form):
                 self.fields[name].widget.attrs['class'] = f"{existing} input-control".strip()
         if user is not None:
             self.fields['destination_folder'].queryset = user.library_folders.all()
+
+        for name, field in self.fields.items():
+            if isinstance(field.widget, ToggleSwitchInput):
+                field.widget.attrs['data-label'] = field.label
+                field.label = ''
 
     def cleaned_language_codes(self) -> str:
         languages = self.cleaned_data.get('languages') or []
@@ -249,7 +289,7 @@ class PdfToWordForm(forms.Form):
 class AccessApprovalForm(forms.ModelForm):
     allowed_menus = forms.MultipleChoiceField(
         choices=MENU_CHOICES,
-        widget=forms.CheckboxSelectMultiple,
+        widget=ToggleCheckboxSelectMultiple,
         label='Meniuri disponibile',
         required=False,
     )
@@ -266,6 +306,7 @@ class AccessApprovalForm(forms.ModelForm):
         super().__init__(*args, **kwargs)
         if self.instance and self.instance.allowed_menus:
             self.initial['allowed_menus'] = self.instance.allowed_menus
+        self.fields['allowed_menus'].widget.attrs.update({'class': 'toggle-switch-list--grid'})
 
     def clean_allowed_menus(self):
         menus = self.cleaned_data.get('allowed_menus') or []
