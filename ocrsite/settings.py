@@ -120,7 +120,7 @@ TEMPLATES = [
     },
 ]
 
-FORM_RENDERER = 'django.forms.renderers.TemplatesSetting'
+FORM_RENDERER = 'django.forms.renderers.DjangoTemplates'
 
 WSGI_APPLICATION = 'ocrsite.wsgi.application'
 
