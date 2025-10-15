@@ -140,32 +140,32 @@
                                     href="{% url 'portal:download_job' job.id %}"
                                     class="icon-button"
                                     title="Descarcă PDF procesat"
+                                    aria-label="Descarcă PDF procesat"
                                 >
                                     <svg aria-hidden="true" focusable="false" viewBox="0 0 24 24">
                                         <path d="M12 3a1 1 0 0 1 1 1v8.586l2.293-2.293a1 1 0 1 1 1.414 1.414l-4 4a1 1 0 0 1-1.414 0l-4-4a1 1 0 1 1 1.414-1.414L11 12.586V4a1 1 0 0 1 1-1zM5 17a1 1 0 0 1 1-1h12a1 1 0 1 1 0 2H6a1 1 0 0 1-1-1z" />
                                     </svg>
-                                    <span class="sr-only">Descarcă PDF</span>
                                 </a>
                                 <a
                                     href="{% url 'portal:assign_job_folder' job.id %}"
                                     class="icon-button icon-button--accent"
                                     title="Salvează documentul într-un folder"
+                                    aria-label="Salvează documentul într-un folder"
                                 >
                                     <svg aria-hidden="true" focusable="false" viewBox="0 0 24 24">
                                         <path d="M3 6a2 2 0 0 1 2-2h5.172a2 2 0 0 1 1.414.586L12.586 6H19a2 2 0 0 1 2 2v8a3 3 0 0 1-3 3H6a3 3 0 0 1-3-3V6zm2 0v10a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V9H11.414l-2-2H5z" />
                                     </svg>
-                                    <span class="sr-only">Salvează în folder</span>
                                 </a>
                                 {% if job.sidecar_file %}
                                     <a
                                         href="{% url 'portal:download_sidecar' job.id %}"
                                         class="icon-button icon-button--ghost"
                                         title="Descarcă fișierul text (sidecar)"
+                                        aria-label="Descarcă fișierul text (sidecar)"
                                     >
                                         <svg aria-hidden="true" focusable="false" viewBox="0 0 24 24">
                                             <path d="M7 2a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V9.828a2 2 0 0 0-.586-1.414l-4.828-4.828A2 2 0 0 0 12.172 3H7zm7 2.414L17.586 8H14a1 1 0 0 1-1-1V4.414zM9 11h6a1 1 0 1 1 0 2H9a1 1 0 1 1 0-2zm0 4h4a1 1 0 1 1 0 2H9a1 1 0 0 1 0-2z" />
                                         </svg>
-                                        <span class="sr-only">Descarcă sidecar</span>
                                     </a>
                                 {% endif %}
                             {% endif %}
@@ -181,11 +181,11 @@
                                     type="submit"
                                     class="icon-button icon-button--danger"
                                     title="Șterge procesarea din istoric"
+                                    aria-label="Șterge procesarea din istoric"
                                 >
                                     <svg aria-hidden="true" focusable="false" viewBox="0 0 24 24">
                                         <path d="M9 3a1 1 0 0 0-1 1v1H5a1 1 0 1 0 0 2h1v12a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2V7h1a1 1 0 1 0 0-2h-3V4a1 1 0 0 0-1-1H9zm1 3h4V5h-4v1zm-1 3a1 1 0 0 1 2 0v8a1 1 0 1 1-2 0V9zm6-1a1 1 0 0 1 1 1v8a1 1 0 1 1-2 0V9a1 1 0 0 1 1-1z" />
                                     </svg>
-                                    <span class="sr-only">Șterge</span>
                                 </button>
                             </form>
                         </div>
