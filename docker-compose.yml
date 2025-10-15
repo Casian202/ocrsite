@@ -9,7 +9,7 @@ services:
     volumes:
       - media:/app/media
       - staticfiles:/app/staticfiles
-      - ./db.sqlite3:/app/db.sqlite3
+      - dbdata:/app/db.sqlite3
     environment:
       DJANGO_DEBUG: ${DJANGO_DEBUG:-False}
       DJANGO_ALLOWED_HOSTS: ${DJANGO_ALLOWED_HOSTS:-localhost,127.0.0.1,ocr.casianhome.org}
@@ -32,3 +32,4 @@ services:
 volumes:
   media:
   staticfiles:
+  dbdata:

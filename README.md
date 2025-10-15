@@ -67,7 +67,7 @@ Aplicatia este disponibila la `http://localhost:8000/`. Pagina de autentificare 
 - `portal/` – aplicatia Django cu modele, formulare, views si URL-uri.
 - `templates/` – layout global si pagini pentru autentificare si panou.
 - `static/` – fisiere CSS pentru interfata.
-- `media/uploads/`, `media/processed/` – directoare create automat de Django pentru fisierele incarcate si rezultatele OCR.
+- `media/` – director creat automat la rulare pentru fisierele incarcate si rezultatele OCR.
 - `deploy/nginx/` – configuratia nginx folosita de docker compose pentru a servi aplicatia si fisierele statice.
 
 ## Docker pe Ubuntu 24.04
@@ -86,7 +86,6 @@ Aplicatia este disponibila la `http://localhost:8000/`. Pagina de autentificare 
    git clone <repo>
    cd ocrsite
    cp .env.example .env
-   touch db.sqlite3
    ```
 
    > Editeaza `.env` pentru a seta `DJANGO_SECRET_KEY`, lista de domenii acceptate (`DJANGO_ALLOWED_HOSTS`), baza URL a site-ului (`SITE_BASE_URL`) si origini de incredere pentru CSRF (`CSRF_TRUSTED_ORIGINS`).
@@ -109,6 +108,8 @@ Aplicatia este disponibila la `http://localhost:8000/`. Pagina de autentificare 
    ```
 
    > `createsuperuser` este optional dar recomandat la prima rulare pentru a putea accesa interfata web.
+
+   > La pornire, containerul `web` ruleaza oricum `migrate` si `collectstatic`; comenzile de mai sus asigura doar initializarea manuala a bazei de date.
 
 5. Porneste serviciile (aplicatie Django + proxy nginx):
 
