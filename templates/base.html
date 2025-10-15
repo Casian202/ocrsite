@@ -24,11 +24,10 @@
 </head>
 <body>
 <header class="app-header">
-    <div class="app-logo">
-        <span class="app-logo__icon">🟢</span>
-        <span class="app-logo__text">OCR Workspace</span>
-    </div>
-    <button class="nav-toggle" aria-expanded="false" aria-controls="main-nav">☰</button>
+    <a href="{% url 'portal:home' %}" class="app-logo" aria-label="Pagina principală">
+        <span class="app-logo__icon" aria-hidden="true">🟢</span>
+    </a>
+    <button class="nav-toggle" aria-expanded="false" aria-controls="main-nav" aria-label="Comută navigarea">☰</button>
     <nav id="main-nav" class="main-nav">
         <ul>
             <li><a href="{% url 'portal:home' %}" class="{% if request.resolver_match.url_name == 'home' %}is-active{% endif %}">Instrucțiuni</a></li>
@@ -59,10 +58,66 @@
         </ul>
     </nav>
     <div class="account-actions">
-        <button id="theme-toggle" class="chip-button chip-button--ghost theme-switch" type="button" aria-pressed="false">
-            <span class="theme-switch__icon" aria-hidden="true">☀️</span>
-            <span class="theme-switch__label">Zi</span>
-        </button>
+        <div class="theme-toggle">
+            <label class="theme-toggle__switch">
+                <span class="sr-only">Comută tema</span>
+                <input id="theme-toggle-input" type="checkbox" aria-label="Comută tema întunecată">
+                <span class="theme-toggle__slider round">
+                    <span class="theme-toggle__sun-moon">
+                        <svg class="theme-toggle__moon-dot" data-dot="1" viewBox="0 0 100 100" aria-hidden="true">
+                            <circle cx="50" cy="50" r="50"></circle>
+                        </svg>
+                        <svg class="theme-toggle__moon-dot" data-dot="2" viewBox="0 0 100 100" aria-hidden="true">
+                            <circle cx="50" cy="50" r="50"></circle>
+                        </svg>
+                        <svg class="theme-toggle__moon-dot" data-dot="3" viewBox="0 0 100 100" aria-hidden="true">
+                            <circle cx="50" cy="50" r="50"></circle>
+                        </svg>
+                        <svg class="theme-toggle__light-ray" data-ray="1" viewBox="0 0 100 100" aria-hidden="true">
+                            <circle cx="50" cy="50" r="50"></circle>
+                        </svg>
+                        <svg class="theme-toggle__light-ray" data-ray="2" viewBox="0 0 100 100" aria-hidden="true">
+                            <circle cx="50" cy="50" r="50"></circle>
+                        </svg>
+                        <svg class="theme-toggle__light-ray" data-ray="3" viewBox="0 0 100 100" aria-hidden="true">
+                            <circle cx="50" cy="50" r="50"></circle>
+                        </svg>
+                        <svg class="theme-toggle__cloud theme-toggle__cloud--dark" data-cloud="1" viewBox="0 0 100 100" aria-hidden="true">
+                            <circle cx="50" cy="50" r="50"></circle>
+                        </svg>
+                        <svg class="theme-toggle__cloud theme-toggle__cloud--dark" data-cloud="2" viewBox="0 0 100 100" aria-hidden="true">
+                            <circle cx="50" cy="50" r="50"></circle>
+                        </svg>
+                        <svg class="theme-toggle__cloud theme-toggle__cloud--dark" data-cloud="3" viewBox="0 0 100 100" aria-hidden="true">
+                            <circle cx="50" cy="50" r="50"></circle>
+                        </svg>
+                        <svg class="theme-toggle__cloud theme-toggle__cloud--light" data-cloud="4" viewBox="0 0 100 100" aria-hidden="true">
+                            <circle cx="50" cy="50" r="50"></circle>
+                        </svg>
+                        <svg class="theme-toggle__cloud theme-toggle__cloud--light" data-cloud="5" viewBox="0 0 100 100" aria-hidden="true">
+                            <circle cx="50" cy="50" r="50"></circle>
+                        </svg>
+                        <svg class="theme-toggle__cloud theme-toggle__cloud--light" data-cloud="6" viewBox="0 0 100 100" aria-hidden="true">
+                            <circle cx="50" cy="50" r="50"></circle>
+                        </svg>
+                    </span>
+                    <span class="theme-toggle__stars" aria-hidden="true">
+                        <svg class="theme-toggle__star" data-star="1" viewBox="0 0 20 20">
+                            <path d="M 0 10 C 10 10,10 10 ,0 10 C 10 10 , 10 10 , 10 20 C 10 10 , 10 10 , 20 10 C 10 10 , 10 10 , 10 0 C 10 10,10 10 ,0 10 Z"></path>
+                        </svg>
+                        <svg class="theme-toggle__star" data-star="2" viewBox="0 0 20 20">
+                            <path d="M 0 10 C 10 10,10 10 ,0 10 C 10 10 , 10 10 , 10 20 C 10 10 , 10 10 , 20 10 C 10 10 , 10 10 , 10 0 C 10 10,10 10 ,0 10 Z"></path>
+                        </svg>
+                        <svg class="theme-toggle__star" data-star="3" viewBox="0 0 20 20">
+                            <path d="M 0 10 C 10 10,10 10 ,0 10 C 10 10 , 10 10 , 10 20 C 10 10 , 10 10 , 20 10 C 10 10 , 10 10 , 10 0 C 10 10,10 10 ,0 10 Z"></path>
+                        </svg>
+                        <svg class="theme-toggle__star" data-star="4" viewBox="0 0 20 20">
+                            <path d="M 0 10 C 10 10,10 10 ,0 10 C 10 10 , 10 10 , 10 20 C 10 10 , 10 10 , 20 10 C 10 10 , 10 10 , 10 0 C 10 10,10 10 ,0 10 Z"></path>
+                        </svg>
+                    </span>
+                </span>
+            </label>
+        </div>
         {% if user.is_authenticated %}
             <span class="account-actions__user">{{ user.username }}</span>
             <form action="{% url 'logout' %}" method="post">
@@ -99,20 +154,12 @@
         });
     }
 
-    const themeToggle = document.getElementById('theme-toggle');
-    const themeIcon = themeToggle ? themeToggle.querySelector('.theme-switch__icon') : null;
-    const themeLabel = themeToggle ? themeToggle.querySelector('.theme-switch__label') : null;
+    const themeToggleInput = document.getElementById('theme-toggle-input');
 
     const applyTheme = (theme) => {
         document.documentElement.dataset.theme = theme;
-        if (themeToggle) {
-            themeToggle.setAttribute('aria-pressed', theme === 'dark' ? 'true' : 'false');
-            themeToggle.dataset.theme = theme;
-        }
-        if (themeIcon && themeLabel) {
-            const isDark = theme === 'dark';
-            themeIcon.textContent = isDark ? '🌙' : '☀️';
-            themeLabel.textContent = isDark ? 'Noapte' : 'Zi';
+        if (themeToggleInput) {
+            themeToggleInput.checked = theme === 'dark';
         }
         try {
             window.localStorage.setItem('ocr-theme', theme);
@@ -134,9 +181,9 @@
         applyTheme(theme);
     })();
 
-    if (themeToggle) {
-        themeToggle.addEventListener('click', () => {
-            const nextTheme = document.documentElement.dataset.theme === 'dark' ? 'light' : 'dark';
+    if (themeToggleInput) {
+        themeToggleInput.addEventListener('change', (event) => {
+            const nextTheme = event.target.checked ? 'dark' : 'light';
             applyTheme(nextTheme);
         });
     }

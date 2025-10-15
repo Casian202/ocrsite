@@ -120,6 +120,8 @@ TEMPLATES = [
     },
 ]
 
+FORM_RENDERER = 'django.forms.renderers.TemplatesSetting'
+
 WSGI_APPLICATION = 'ocrsite.wsgi.application'
 
 
@@ -186,6 +188,8 @@ LOGIN_REDIRECT_URL = 'portal:home'
 LOGOUT_REDIRECT_URL = 'login'
 
 SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+
+X_FRAME_OPTIONS = 'SAMEORIGIN'
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field

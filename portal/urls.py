@@ -10,6 +10,7 @@ urlpatterns = [
     path('ocr/', views.ocr_studio, name='ocr'),
     path('ocr/descarca/<uuid:job_id>/', views.download_job, name='download_job'),
     path('ocr/sidecar/<uuid:job_id>/', views.download_sidecar, name='download_sidecar'),
+    path('ocr/folder/<uuid:job_id>/', views.assign_job_folder, name='assign_job_folder'),
     path('biblioteci/', views.libraries, name='libraries'),
     path('biblioteci/<uuid:folder_id>/', views.library_detail, name='library_detail'),
     path('previzualizare/', views.preview_hub, name='preview_hub'),

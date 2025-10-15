@@ -4,6 +4,7 @@ import logging
 import re
 import shutil
 import tempfile
+from dataclasses import dataclass
 from pathlib import Path
 
 from django.contrib import messages
@@ -17,6 +18,7 @@ from .decorators import portal_menu_required
 from .forms import (
     AccessApprovalForm,
     FolderForm,
+    JobDestinationForm,
     LibraryDocumentForm,
     OcrRequestForm,
     PdfToWordForm,
@@ -34,6 +36,13 @@ from .models import (
 )
 
 log = logging.getLogger(__name__)
+
+
+@dataclass(slots=True)
+class ProcessingResult:
+    message: str
+    level: str = 'success'
+    engine: str = 'ocrmypdf'
 
 
 @login_required
@@ -86,13 +95,21 @@ def ocr_studio(request):
         job.save()
 
         try:
-            _run_ocr(job)
-            messages.success(request, 'Documentul a fost procesat cu succes cu OCRmyPDF.')
+            result = _run_ocr(job)
         except RuntimeError as exc:
             job.status = OcrJob.Status.FAILED
             job.error_message = str(exc)
             job.save(update_fields=['status', 'error_message', 'updated_at'])
             messages.error(request, f'Procesarea a eșuat: {exc}')
+        else:
+            feedback = result or ProcessingResult('Documentul a fost procesat cu succes.')
+            level = feedback.level.lower()
+            if level == 'warning':
+                messages.warning(request, feedback.message)
+            elif level == 'info':
+                messages.info(request, feedback.message)
+            else:
+                messages.success(request, feedback.message)
 
         return redirect('portal:ocr')
 
@@ -295,6 +312,50 @@ def download_sidecar(request, job_id):
     )
 
 
+@portal_menu_required('ocr')
+def assign_job_folder(request, job_id):
+    job = get_object_or_404(OcrJob, id=job_id, user=request.user)
+
+    if job.status != OcrJob.Status.COMPLETED:
+        messages.error(request, 'Documentul trebuie procesat înainte de a fi arhivat într-un folder.')
+        return redirect('portal:ocr')
+
+    form = JobDestinationForm(
+        request.POST or None,
+        user=request.user,
+        initial={'destination_folder': job.destination_folder},
+    )
+
+    if request.method == 'POST' and form.is_valid():
+        folder = form.cleaned_data['destination_folder']
+        try:
+            stored = _archive_job_to_folder(job, folder)
+        except ValueError as exc:
+            form.add_error('destination_folder', str(exc))
+        else:
+            job.destination_folder = folder
+            job.save(update_fields=['destination_folder', 'updated_at'])
+            messages.success(
+                request,
+                f'Documentul a fost salvat în folderul „{folder.name}”.',
+            )
+            if stored.processed_file:
+                messages.info(
+                    request,
+                    'Versiunea procesată este disponibilă în bibliotecă împreună cu fișierul original.',
+                )
+            return redirect('portal:ocr')
+
+    return render(
+        request,
+        'portal/assign_job_folder.html',
+        {
+            'form': form,
+            'job': job,
+        },
+    )
+
+
 @portal_menu_required('admin')
 def admin_console(request):
     if not request.user.is_staff:
@@ -356,7 +417,50 @@ def admin_console(request):
     )
 
 
-def _run_ocr(job: OcrJob) -> None:
+def _archive_job_to_folder(job: OcrJob, folder: LibraryFolder) -> StoredDocument:
+    if folder.user_id != job.user_id:
+        raise ValueError('Nu poți salva documentul într-un folder care nu îți aparține.')
+
+    title = Path(job.processed_filename() or Path(job.source_file.name).name).stem
+    stored, created = StoredDocument.objects.get_or_create(
+        folder=folder,
+        ocr_job=job,
+        defaults={'title': title},
+    )
+
+    if not created and not stored.title:
+        stored.title = title
+
+    if stored.original_file:
+        stored.original_file.delete(save=False)
+
+    with job.source_file.open('rb') as original_stream:
+        stored.original_file.save(
+            Path(job.source_file.name).name,
+            File(original_stream),
+            save=False,
+        )
+
+    if job.processed_file:
+        if stored.processed_file:
+            stored.processed_file.delete(save=False)
+        filename = job.processed_filename() or f"{title}_ocr.pdf"
+        with job.processed_file.open('rb') as processed_stream:
+            stored.processed_file.save(
+                filename,
+                File(processed_stream),
+                save=False,
+            )
+    elif stored.processed_file:
+        stored.processed_file.delete(save=False)
+        stored.processed_file = None
+
+    stored.title = stored.title or title
+    stored.save()
+    return stored
+
+
+def _run_ocr(job: OcrJob) -> ProcessingResult:
     settings_obj = PortalSettings.load()
     engine = settings_obj.ocr_engine or PortalSettings.OcrEngine.OCRMYPDF
     options = job.options or {}
@@ -365,33 +469,37 @@ def _run_ocr(job: OcrJob) -> None:
     job.save(update_fields=['options'])
 
     if engine == PortalSettings.OcrEngine.DOCLING:
-        _run_with_docling(job)
+        if not PortalSettings.docling_available():
+            log.warning('Docling engine requested but unavailable; falling back to OCRmyPDF.')
+            result = _run_with_ocrmypdf(job)
+            unavailable_msg = 'Docling nu este disponibil în acest moment. '
+            if result.level == 'success':
+                result = ProcessingResult(
+                    unavailable_msg + 'Documentul a fost procesat cu OCRmyPDF.',
+                    level='warning',
+                    engine=result.engine,
+                )
+            else:
+                result = ProcessingResult(
+                    unavailable_msg + result.message,
+                    level='warning',
+                    engine=result.engine,
+                )
+        else:
+            result = _run_with_docling(job)
     else:
-        _run_with_ocrmypdf(job)
+        result = _run_with_ocrmypdf(job)
 
     if job.destination_folder and job.status == OcrJob.Status.COMPLETED:
-        stored = StoredDocument(
-            folder=job.destination_folder,
-            ocr_job=job,
-            title=Path(job.source_file.name).stem,
-        )
-        with job.source_file.open('rb') as original_stream:
-            stored.original_file.save(
-                Path(job.source_file.name).name,
-                File(original_stream),
-                save=False,
-            )
-        if job.processed_file:
-            with job.processed_file.open('rb') as processed_stream:
-                stored.processed_file.save(
-                    job.processed_filename(),
-                    File(processed_stream),
-                    save=False,
-                )
-        stored.save()
+        try:
+            _archive_job_to_folder(job, job.destination_folder)
+        except ValueError:
+            log.warning('Job %s nu poate fi salvat în folderul selectat.', job.id)
+
+    return result
 
 
-def _run_with_ocrmypdf(job: OcrJob) -> None:
+def _run_with_ocrmypdf(job: OcrJob) -> ProcessingResult:
     try:
         import ocrmypdf
         from ocrmypdf import exceptions as ocrmypdf_exceptions
@@ -433,18 +541,38 @@ def _run_with_ocrmypdf(job: OcrJob) -> None:
         if sidecar_requested:
             ocr_kwargs['sidecar'] = str(sidecar_path)
 
+        handled_exceptions = [
+            ocrmypdf_exceptions.MissingDependencyError,
+        ]
+        for attr in ('SubprocessOutputError', 'OcrError', 'ExitCodeError'):
+            exc_cls = getattr(ocrmypdf_exceptions, attr, None)
+            if exc_cls is not None and exc_cls not in handled_exceptions:
+                handled_exceptions.append(exc_cls)
+
+        info_message = None
         try:
             ocrmypdf.ocr(
                 str(input_path),
                 str(output_path),
                 **ocr_kwargs,
             )
-        except (
-            ocrmypdf_exceptions.MissingDependencyError,
-            ocrmypdf_exceptions.PriorOcrFoundError,
-            getattr(ocrmypdf_exceptions, 'SubprocessOutputError', ocrmypdf_exceptions.OcrError),
-            ocrmypdf_exceptions.OcrError,
-        ) as exc:
+        except ocrmypdf_exceptions.PriorOcrFoundError:
+            log.info('Existing OCR detected for job %s; rerunning with skip_text.', job.id)
+            safe_kwargs = {**ocr_kwargs, 'skip_text': True, 'force_ocr': False}
+            try:
+                ocrmypdf.ocr(
+                    str(input_path),
+                    str(output_path),
+                    **safe_kwargs,
+                )
+            except tuple(handled_exceptions) as fallback_exc:  # type: ignore[arg-type]
+                log.exception('OCR fallback failed for job %s', job.id)
+                raise RuntimeError(str(fallback_exc)) from fallback_exc
+            else:
+                info_message = (
+                    'Documentul conține deja text OCR. A fost păstrat conținutul existent și s-au aplicat optimizările disponibile.'
+                )
+        except tuple(handled_exceptions) as exc:  # type: ignore[arg-type]
             log.exception('OCR failed for job %s', job.id)
             raise RuntimeError(str(exc)) from exc
 
@@ -472,13 +600,11 @@ def _run_with_ocrmypdf(job: OcrJob) -> None:
         update_fields=['processed_file', 'sidecar_file', 'status', 'error_message', 'updated_at']
     )
 
-        job.status = OcrJob.Status.COMPLETED
-        job.error_message = ''
-        job.save(
-            update_fields=['processed_file', 'sidecar_file', 'status', 'error_message', 'updated_at']
-        )
+    message = info_message or 'Documentul a fost procesat cu succes cu OCRmyPDF.'
+    level = 'info' if info_message else 'success'
+    return ProcessingResult(message, level=level, engine='ocrmypdf')
 
-def _run_with_docling(job: OcrJob) -> None:
+def _run_with_docling(job: OcrJob) -> ProcessingResult:
     try:
         from docling.document_converter import DocumentConverter
     except ImportError as exc:  # pragma: no cover
@@ -498,8 +624,24 @@ def _run_with_docling(job: OcrJob) -> None:
         with job.source_file.open('rb') as uploaded, input_path.open('wb') as destination:
             shutil.copyfileobj(uploaded, destination)
 
-        converter = DocumentConverter()
-        result = converter.convert(str(input_path))
+        try:
+            converter = DocumentConverter()
+        except Exception as exc:  # noqa: BLE001
+            log.exception('Docling initialisation failed for job %s', job.id)
+            raise RuntimeError(
+                'Docling nu a putut fi inițializat. Verifică dacă dependențele (rapidocr-onnxruntime, opencv-python-headless) sunt instalate.'
+            ) from exc
+
+        try:
+            result = converter.convert(str(input_path))
+        except Exception as exc:  # noqa: BLE001
+            log.exception('Docling conversion failed for job %s', job.id)
+            message = str(exc)
+            if 'No OCR engine found' in message:
+                message = (
+                    'Docling nu a găsit un motor OCR disponibil. Instalează „rapidocr-onnxruntime” sau configurează un motor compatibil.'
+                )
+            raise RuntimeError(message) from exc
         document = getattr(result, 'document', None)
         if document is None:
             raise RuntimeError('Docling nu a putut procesa documentul furnizat.')
@@ -560,6 +702,8 @@ def _run_with_docling(job: OcrJob) -> None:
         update_fields=['processed_file', 'sidecar_file', 'status', 'error_message', 'updated_at']
     )
 
+    return ProcessingResult('Documentul a fost procesat cu succes cu Docling.', engine='docling')
+
 
 def _markdown_to_plain_text(markdown_text: str) -> str:
     cleaned_lines = []
@@ -617,8 +761,8 @@ def _convert_pdf_to_word(user, title: str, pdf_file) -> WordDocument:
 
     text_content = ''
     if job.sidecar_file:
-        with job.sidecar_file.open('r', encoding='utf-8', errors='ignore') as sidecar:
-            text_content = sidecar.read()
+        with job.sidecar_file.open('rb') as sidecar:
+            text_content = sidecar.read().decode('utf-8', errors='ignore')
 
     document = Document()
     document.add_heading(title, level=1)

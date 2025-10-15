@@ -34,14 +34,21 @@
                 <small class="help-text">{{ form.pdf_file.help_text }}</small>
                 {{ form.pdf_file.errors }}
             </div>
-            <div class="form-field">
-                {{ form.languages.label_tag }}
-                {{ form.languages }}
-                <small class="help-text">{{ form.languages.help_text }}</small>
-                {{ form.languages.errors }}
+            <div class="form-field toggle-field">
+                {{ form.auto_language }}
+                {{ form.auto_language.errors }}
             </div>
-            <div class="form-field">
-                <label class="checkbox">{{ form.auto_language }} <span>Detectare automată</span></label>
+            <div class="form-field language-field" data-language-field>
+                <label for="{{ form.languages.id_for_label }}">{{ form.languages.label }}</label>
+                <button type="button" class="language-button" data-language-toggle aria-expanded="false" aria-controls="language-dropdown">
+                    <span data-language-summary>Selectează limbile</span>
+                    <span class="language-button__caret" aria-hidden="true">▾</span>
+                </button>
+                <div id="language-dropdown" class="language-dropdown" data-language-dropdown>
+                    {{ form.languages }}
+                    <small class="help-text">{{ form.languages.help_text }}</small>
+                    {{ form.languages.errors }}
+                </div>
             </div>
             <div class="form-field">
                 {{ form.destination_folder.label_tag }}
@@ -49,23 +56,39 @@
                 <small class="help-text">{{ form.destination_folder.help_text }}</small>
                 {{ form.destination_folder.errors }}
             </div>
-            <div class="form-field">
-                {{ form.optimize_level.label_tag }}
-                {{ form.optimize_level }}
-                <small class="help-text">{{ form.optimize_level.help_text }}</small>
+            <div class="advanced-actions full-width">
+                <button type="button" class="advanced-trigger" data-advanced-open>
+                    ⚙️ Setări avansate
+                </button>
             </div>
-            <div class="form-field toggle-group">
-                <label class="checkbox">{{ form.deskew }} <span>{{ form.deskew.label }}</span></label>
-                <label class="checkbox">{{ form.rotate_pages }} <span>{{ form.rotate_pages.label }}</span></label>
-                <label class="checkbox">{{ form.remove_background }} <span>{{ form.remove_background.label }}</span></label>
-                <label class="checkbox">{{ form.clean_final }} <span>{{ form.clean_final.label }}</span></label>
-                <label class="checkbox">{{ form.skip_text }} <span>{{ form.skip_text.label }}</span></label>
-                <label class="checkbox">{{ form.force_ocr }} <span>{{ form.force_ocr.label }}</span></label>
-                <label class="checkbox">{{ form.make_sidecar }} <span>{{ form.make_sidecar.label }}</span></label>
-            </div>
-            <div class="form-field">
-                {{ form.output_type.label_tag }}
-                {{ form.output_type }}
+            <div class="advanced-overlay" data-advanced-overlay hidden>
+                <div class="advanced-overlay__backdrop" data-advanced-close></div>
+                <div class="advanced-overlay__content" role="dialog" aria-modal="true" aria-labelledby="advanced-settings-title">
+                    <div class="advanced-overlay__header">
+                        <h3 id="advanced-settings-title" class="advanced-overlay__title">Setări avansate</h3>
+                        <button type="button" class="advanced-overlay__close" data-advanced-close aria-label="Închide setările">×</button>
+                    </div>
+                    <div class="advanced-grid">
+                        <div class="form-field">
+                            {{ form.optimize_level.label_tag }}
+                            {{ form.optimize_level }}
+                            <small class="help-text">{{ form.optimize_level.help_text }}</small>
+                        </div>
+                        <div class="advanced-grid__toggles">
+                            {{ form.deskew }}
+                            {{ form.rotate_pages }}
+                            {{ form.remove_background }}
+                            {{ form.clean_final }}
+                            {{ form.skip_text }}
+                            {{ form.force_ocr }}
+                            {{ form.make_sidecar }}
+                        </div>
+                        <div class="form-field">
+                            {{ form.output_type.label_tag }}
+                            {{ form.output_type }}
+                        </div>
+                    </div>
+                </div>
             </div>
             <div class="form-actions full-width">
                 <button type="submit" class="primary-button">Pornește OCR</button>
@@ -79,9 +102,12 @@
             <div class="job-list">
                 {% for job in jobs %}
                     <div class="job-item job-item--{{ job.status }}">
-                        <div>
-                            <h3>{{ job.processed_filename|default:job.source_file.name }}</h3>
+                        <div class="job-item__details">
+                            <h3 class="job-item__title">{{ job.processed_filename|default:job.source_file.name }}</h3>
                             <p class="muted">Creat {{ job.created_at|date:"d.m.Y H:i" }} · Limbi: {{ job.language_labels }}</p>
+                            {% if job.destination_folder %}
+                                <p class="muted">Arhivat în: {{ job.destination_folder.name }}</p>
+                            {% endif %}
                             {% if job.error_message %}
                                 <p class="error-text">{{ job.error_message }}</p>
                             {% endif %}
@@ -89,6 +115,7 @@
                         <div class="job-actions">
                             {% if job.status == 'completed' %}
                                 <a href="{% url 'portal:download_job' job.id %}" class="chip-button">Descarcă PDF</a>
+                                <a href="{% url 'portal:assign_job_folder' job.id %}" class="chip-button chip-button--accent">Salvează în folder</a>
                                 {% if job.sidecar_file %}
                                     <a href="{% url 'portal:download_sidecar' job.id %}" class="chip-button chip-button--ghost">Sidecar</a>
                                 {% endif %}
@@ -104,4 +131,135 @@
         {% endif %}
     </article>
 </section>
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const autoToggle = document.querySelector('input[name="auto_language"]');
+        const languageField = document.querySelector('[data-language-field]');
+        const languageButton = document.querySelector('[data-language-toggle]');
+        const languageDropdown = document.querySelector('[data-language-dropdown]');
+        const languageSummary = document.querySelector('[data-language-summary]');
+        const languageSelect = languageField ? languageField.querySelector('select') : null;
+
+        const updateLanguageSummary = () => {
+            if (!languageSelect || !languageSummary) return;
+            const selected = Array.from(languageSelect.selectedOptions).map((option) => option.text.trim());
+            if (!selected.length) {
+                languageSummary.textContent = 'Selectează limbile';
+            } else if (selected.length <= 2) {
+                languageSummary.textContent = selected.join(', ');
+            } else {
+                languageSummary.textContent = `${selected.length} limbi selectate`;
+            }
+        };
+
+        const closeLanguageDropdown = () => {
+            if (languageDropdown && languageButton) {
+                languageDropdown.classList.remove('is-open');
+                languageButton.setAttribute('aria-expanded', 'false');
+            }
+        };
+
+        const updateLanguageVisibility = () => {
+            if (!languageField || !autoToggle) return;
+            const hide = autoToggle.checked;
+            languageField.hidden = hide;
+            if (hide) {
+                closeLanguageDropdown();
+            }
+        };
+
+        if (languageButton && languageDropdown) {
+            languageButton.addEventListener('click', (event) => {
+                event.preventDefault();
+                const isOpen = languageDropdown.classList.toggle('is-open');
+                languageButton.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+            });
+
+            document.addEventListener('click', (event) => {
+                if (!languageField || languageField.contains(event.target)) {
+                    return;
+                }
+                closeLanguageDropdown();
+            });
+        }
+
+        if (languageSelect) {
+            languageSelect.addEventListener('change', updateLanguageSummary);
+            updateLanguageSummary();
+        }
+
+        const languageErrors = languageDropdown ? languageDropdown.querySelector('.errorlist') : null;
+        if (languageErrors && languageButton && languageDropdown) {
+            languageField.hidden = false;
+            languageDropdown.classList.add('is-open');
+            languageButton.setAttribute('aria-expanded', 'true');
+        }
+
+        if (autoToggle) {
+            autoToggle.addEventListener('change', () => {
+                updateLanguageVisibility();
+            });
+            updateLanguageVisibility();
+        }
+
+        const advancedOverlay = document.querySelector('[data-advanced-overlay]');
+        const advancedOpen = document.querySelector('[data-advanced-open]');
+        const advancedClosers = document.querySelectorAll('[data-advanced-close]');
+
+        const focusableSelector = 'a[href], button:not([disabled]), textarea, input, select, [tabindex]:not([tabindex="-1"])';
+
+        const focusFirstElement = () => {
+            if (!advancedOverlay) return;
+            const focusable = advancedOverlay.querySelectorAll(focusableSelector);
+            if (focusable.length) {
+                focusable[0].focus({ preventScroll: true });
+            }
+        };
+
+        const openAdvanced = () => {
+            if (!advancedOverlay) return;
+            advancedOverlay.hidden = false;
+            advancedOverlay.classList.add('is-open');
+            document.body.classList.add('modal-open');
+            focusFirstElement();
+        };
+
+        const closeAdvanced = () => {
+            if (!advancedOverlay) return;
+            advancedOverlay.classList.remove('is-open');
+            advancedOverlay.hidden = true;
+            document.body.classList.remove('modal-open');
+            if (advancedOpen) {
+                advancedOpen.focus({ preventScroll: true });
+            }
+        };
+
+        if (advancedOpen) {
+            advancedOpen.addEventListener('click', (event) => {
+                event.preventDefault();
+                openAdvanced();
+            });
+        }
+
+        advancedClosers.forEach((button) => {
+            button.addEventListener('click', (event) => {
+                event.preventDefault();
+                closeAdvanced();
+            });
+        });
+
+        document.addEventListener('keydown', (event) => {
+            if (event.key !== 'Escape') {
+                return;
+            }
+            if (advancedOverlay && advancedOverlay.classList.contains('is-open')) {
+                closeAdvanced();
+                return;
+            }
+            if (languageDropdown && languageDropdown.classList.contains('is-open')) {
+                closeLanguageDropdown();
+            }
+        });
+    });
+</script>
 {% endblock %}
