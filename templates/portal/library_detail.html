@@ -9,6 +9,19 @@
         {% if folder.description %}<p>{{ folder.description }}</p>{% endif %}
         <a href="{% url 'portal:libraries' %}" class="chip-button chip-button--ghost">&larr; Înapoi la biblioteci</a>
     </div>
+    <div class="section-header__actions">
+        <a
+            href="{% url 'portal:download_library_archive' folder.id %}"
+            class="chip-button"
+            aria-label="Descarcă folderul ca arhivă ZIP"
+            title="Descarcă folderul ca arhivă ZIP"
+        >
+            <svg aria-hidden="true" focusable="false" viewBox="0 0 24 24">
+                <path d="M12 2a1 1 0 0 1 1 1v10.586l2.293-2.293a1 1 0 0 1 1.414 1.414l-4 4a1 1 0 0 1-1.414 0l-4-4a1 1 0 1 1 1.414-1.414L11 13.586V3a1 1 0 0 1 1-1zm-7 14a1 1 0 0 1 1 1v2h12v-2a1 1 0 1 1 2 0v3a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1v-3a1 1 0 0 1 1-1z" />
+            </svg>
+            <span>Descarcă folder</span>
+        </a>
+    </div>
 </section>
 
 <section class="card">
