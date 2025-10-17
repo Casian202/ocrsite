@@ -18,7 +18,7 @@
         {% if access %}
             <div class="status-chip status-chip--{{ access.status }}">Status acces: {{ access.get_status_display }}</div>
             {% if access.allowed_menus %}
-                <p class="muted">Module active:</p>
+                <p class="muted" style="margin-top: var(--space-4);">Module active:</p>
                 <ul class="status-list">
                     {% for label in access.menu_labels %}
                         <li>{{ label }}</li>

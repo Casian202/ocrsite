@@ -5,7 +5,7 @@
 {% block content %}
 <section class="page-header">
     <div class="page-header__text">
-        <a href="{% url 'portal:libraries' %}" class="btn btn--ghost">&larr; Înapoi la biblioteci</a>
+        <a href="{% url 'portal:libraries' %}" class="btn btn--ghost" style="margin-bottom: var(--space-4);">&larr; Înapoi la biblioteci</a>
         <h1>{{ folder.name }}</h1>
         {% if folder.description %}
             <p>{{ folder.description }}</p>
@@ -34,7 +34,7 @@
                     <th>Titlu</th>
                     <th>Creat</th>
                     <th>Status OCR</th>
-                    <th class="table-align-right">Acțiuni</th>
+                    <th style="text-align:right;">Acțiuni</th>
                 </tr>
             </thead>
             <tbody>
@@ -43,13 +43,11 @@
                         <td>{{ document.title }}</td>
                         <td>{{ document.created_at|date:"d.m.Y H:i" }}</td>
                         <td>{% if document.ocr_job %}{{ document.ocr_job.get_status_display }}{% else %}-{% endif %}</td>
-                        <td class="table-align-right">
-                            <div class="table-actions">
-                                <a href="{% url 'portal:preview' document.id %}" class="btn btn--ghost">Previzualizează</a>
-                                {% if document.processed_file %}
-                                    <a href="{% url 'portal:download_document' document.id %}" class="btn btn--primary">Descarcă PDF</a>
-                                {% endif %}
-                            </div>
+                        <td style="text-align:right; display:flex; justify-content:flex-end; gap:var(--space-3);">
+                            <a href="{% url 'portal:preview' document.id %}" class="btn btn--ghost">Previzualizează</a>
+                            {% if document.processed_file %}
+                                <a href="{% url 'portal:download_document' document.id %}" class="btn btn--primary">Descarcă PDF</a>
+                            {% endif %}
                         </td>
                     </tr>
                 {% endfor %}

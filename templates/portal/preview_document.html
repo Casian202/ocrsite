@@ -5,7 +5,7 @@
 {% block content %}
 <section class="page-header">
     <div class="page-header__text">
-        <a href="{% url 'portal:preview_hub' %}" class="btn btn--ghost">&larr; Înapoi la listă</a>
+        <a href="{% url 'portal:preview_hub' %}" class="btn btn--ghost" style="margin-bottom: var(--space-4);">&larr; Înapoi la listă</a>
         <h1>{{ document.title }}</h1>
         <p class="muted">Folder: {{ document.folder.name }}</p>
     </div>
@@ -14,21 +14,21 @@
 <section class="surface-card">
     <div class="preview-frame">
         {% if document.processed_file %}
-            <iframe src="{{ document.processed_file.url }}" title="Previzualizare document"></iframe>
+            <iframe src="{{ document.processed_file.url }}" title="Previzualizare document" style="width:100%; height:100%; border:0;"></iframe>
         {% else %}
-            <div class="preview-placeholder">
+            <div style="padding: var(--space-6);">
                 <p class="muted">Documentul nu are încă un fișier procesat disponibil.</p>
             </div>
         {% endif %}
     </div>
-    <div class="cta-stack cta-stack--end">
+    <div class="cta-stack" style="justify-content:flex-end; margin-top: var(--space-5);">
         {% if document.processed_file %}
             <a href="{% url 'portal:download_document' document.id %}" class="btn btn--primary">Descarcă PDF procesat</a>
         {% endif %}
         <a href="{{ document.original_file.url }}" class="btn btn--ghost">Vezi PDF original</a>
     </div>
     {% if document.processed_file %}
-        <p class="muted">Dacă previzualizarea nu se încarcă, descarcă documentul și vizualizează-l local.</p>
+        <p class="muted" style="margin-top: var(--space-4);">Dacă previzualizarea nu se încarcă, descarcă documentul și vizualizează-l local.</p>
     {% endif %}
 </section>
 {% endblock %}
