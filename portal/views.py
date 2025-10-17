@@ -208,7 +208,6 @@ def download_library_archive(request, folder_id):
 
     buffer = io.BytesIO()
     with zipfile.ZipFile(buffer, 'w', zipfile.ZIP_DEFLATED) as archive:
-        processed_found = False
         if not documents:
             archive.writestr('citeste-ma.txt', 'Acest folder nu conține documente.')
         for document in documents:
@@ -220,6 +219,14 @@ def download_library_archive(request, folder_id):
                 base_label = document.id.hex
             entry_prefix = f"{base_label}-{document.id.hex[:8]}/"
 
+            if document.original_file:
+                original_name = document.original_filename()
+                with document.original_file.open('rb') as original_stream:
+                    archive.writestr(
+                        f"{entry_prefix}{original_name}",
+                        original_stream.read(),
+                    )
+
             if document.processed_file:
                 processed_name = document.processed_filename()
                 with document.processed_file.open('rb') as processed_stream:
@@ -227,13 +234,6 @@ def download_library_archive(request, folder_id):
                         f"{entry_prefix}{processed_name}",
                         processed_stream.read(),
                     )
-                processed_found = True
-
-        if documents and not processed_found:
-            archive.writestr(
-                'citeste-ma.txt',
-                'Acest folder conține doar fișiere originale. Niciun rezultat OCR nu este disponibil.',
-            )
 
     buffer.seek(0)
     archive_name = slugify(folder.name) or 'folder'
