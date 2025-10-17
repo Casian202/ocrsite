@@ -8,203 +8,260 @@
     <script>
         (function () {
             try {
-                const storedTheme = window.localStorage.getItem('ocr-theme');
+                const saved = window.localStorage.getItem('ocr-theme');
+                if (saved) {
+                    document.documentElement.dataset.theme = saved;
+                    return;
+                }
                 const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
-                const theme = storedTheme || (prefersDark ? 'dark' : 'light');
-                document.documentElement.dataset.theme = theme;
+                document.documentElement.dataset.theme = prefersDark ? 'dark' : 'light';
             } catch (error) {
                 document.documentElement.dataset.theme = 'light';
             }
         })();
     </script>
-    <link rel="stylesheet" href="{% static 'css/styles.css' %}">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{% static 'css/styles.css' %}">
 </head>
 <body>
-<header class="app-header">
-    <a href="{% url 'portal:home' %}" class="app-logo" aria-label="Pagina principală">
-        <span class="app-logo__icon" aria-hidden="true">🟢</span>
-    </a>
-    <button class="nav-toggle" aria-expanded="false" aria-controls="main-nav" aria-label="Comută navigarea">☰</button>
-    <nav id="main-nav" class="main-nav">
-        <ul>
-            <li><a href="{% url 'portal:home' %}" class="{% if request.resolver_match.url_name == 'home' %}is-active{% endif %}">Instrucțiuni</a></li>
-            {% if user.is_authenticated and portal_menu_items %}
-                {% for item in portal_menu_items %}
+    <a class="skip-link" href="#main-content">Sari la conținut</a>
+    <div class="vista-app">
+        <header class="vista-topbar">
+            <div class="vista-topbar__left">
+                <button
+                    type="button"
+                    class="vista-menu-toggle"
+                    data-drawer-toggle
+                    aria-label="Deschide navigarea"
+                    aria-expanded="false"
+                    aria-controls="portal-navigation"
+                >
+                    <span aria-hidden="true"></span>
+                </button>
+                <a href="{% url 'portal:home' %}" class="vista-logo" aria-label="Pagina principală OCR Workspace">
+                    <span aria-hidden="true">◎</span>
+                    <span>OCR Vista Flow</span>
+                </a>
+            </div>
+            <div class="vista-topbar__right">
+                <button id="theme-toggle-button" type="button" class="vista-action" aria-label="Comută tema">
+                    <svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24"><path fill="currentColor" d="M12 3a1 1 0 0 1 1 1v1.06a7 7 0 1 1-2 0V4a1 1 0 0 1 1-1z"/></svg>
+                </button>
+                {% if user.is_authenticated %}
+                    {% if user.is_staff %}
+                        <a class="vista-action" href="{% url 'admin:index' %}">Administrare</a>
+                    {% endif %}
+                    <span class="vista-avatar">{{ user.username }}</span>
+                    <form action="{% url 'logout' %}" method="post" class="inline-form">
+                        {% csrf_token %}
+                        <button type="submit" class="vista-action vista-action--primary">Deconectare</button>
+                    </form>
+                {% else %}
+                    <a href="{% url 'login' %}" class="vista-action vista-action--primary">Autentificare</a>
+                    <a href="{% url 'portal:signup' %}" class="vista-action">Creează cont</a>
+                {% endif %}
+            </div>
+        </header>
+
+        <aside class="vista-drawer" id="portal-navigation" data-drawer hidden>
+            <div class="vista-drawer__head">
+                <div class="vista-drawer__logo">
+                    <span aria-hidden="true">◎</span>
+                    <span>OCR Vista Flow</span>
+                </div>
+                <button type="button" class="vista-drawer__close" data-drawer-close aria-label="Închide navigarea">×</button>
+            </div>
+            <nav aria-label="Navigare principală">
+                <ul>
                     <li>
-                        {% if item.key == 'ocr' %}
-                            <a href="{% url 'portal:ocr' %}" class="{% if request.resolver_match.url_name == 'ocr' %}is-active{% endif %}">{{ item.label }}</a>
-                        {% elif item.key == 'libraries' %}
-                            {% with current=request.resolver_match.url_name %}
-                                <a href="{% url 'portal:libraries' %}" class="{% if current == 'libraries' or current == 'library_detail' %}is-active{% endif %}">{{ item.label }}</a>
-                            {% endwith %}
-                        {% elif item.key == 'preview' %}
-                            {% with current=request.resolver_match.url_name %}
-                                <a href="{% url 'portal:preview_hub' %}" class="{% if current == 'preview' or current == 'preview_hub' %}is-active{% endif %}">{{ item.label }}</a>
-                            {% endwith %}
-                        {% elif item.key == 'word' %}
-                            <a href="{% url 'portal:word' %}" class="{% if request.resolver_match.url_name == 'word' %}is-active{% endif %}">{{ item.label }}</a>
-                        {% elif item.key == 'admin' %}
-                            <a href="{% url 'portal:admin' %}" class="{% if request.resolver_match.url_name == 'admin' %}is-active{% endif %}">{{ item.label }}</a>
-                        {% endif %}
+                        <a href="{% url 'portal:home' %}" class="vista-nav-link {% if request.resolver_match.url_name == 'home' %}is-active{% endif %}">
+                            <span aria-hidden="true">🏠</span>
+                            <span>Instrucțiuni</span>
+                        </a>
                     </li>
-                {% endfor %}
+                    {% if user.is_authenticated and portal_menu_items %}
+                        {% for item in portal_menu_items %}
+                            <li>
+                                {% if item.key == 'ocr' %}
+                                    <a href="{% url 'portal:ocr' %}" class="vista-nav-link {% if request.resolver_match.url_name == 'ocr' %}is-active{% endif %}">
+                                        <span aria-hidden="true">🖨️</span>
+                                        <span>{{ item.label }}</span>
+                                    </a>
+                                {% elif item.key == 'libraries' %}
+                                    {% with current=request.resolver_match.url_name %}
+                                        <a href="{% url 'portal:libraries' %}" class="vista-nav-link {% if current == 'libraries' or current == 'library_detail' %}is-active{% endif %}">
+                                            <span aria-hidden="true">📁</span>
+                                            <span>{{ item.label }}</span>
+                                        </a>
+                                    {% endwith %}
+                                {% elif item.key == 'preview' %}
+                                    {% with current=request.resolver_match.url_name %}
+                                        <a href="{% url 'portal:preview_hub' %}" class="vista-nav-link {% if current == 'preview' or current == 'preview_hub' %}is-active{% endif %}">
+                                            <span aria-hidden="true">👁️</span>
+                                            <span>{{ item.label }}</span>
+                                        </a>
+                                    {% endwith %}
+                                {% elif item.key == 'word' %}
+                                    <a href="{% url 'portal:word' %}" class="vista-nav-link {% if request.resolver_match.url_name == 'word' %}is-active{% endif %}">
+                                        <span aria-hidden="true">📝</span>
+                                        <span>{{ item.label }}</span>
+                                    </a>
+                                {% elif item.key == 'admin' %}
+                                    <a href="{% url 'portal:admin' %}" class="vista-nav-link {% if request.resolver_match.url_name == 'admin' %}is-active{% endif %}">
+                                        <span aria-hidden="true">🛠️</span>
+                                        <span>{{ item.label }}</span>
+                                    </a>
+                                {% endif %}
+                            </li>
+                        {% endfor %}
+                    {% endif %}
+                </ul>
+            </nav>
+        </aside>
+        <div class="vista-overlay" data-drawer-overlay hidden></div>
+
+        <main class="vista-main" id="main-content">
+            {% if messages %}
+                <div class="toast-stack" role="status" aria-live="polite">
+                    {% for message in messages %}
+                        <div class="toast toast--{{ message.tags|default:'info' }}">{{ message }}</div>
+                    {% endfor %}
+                </div>
             {% endif %}
-            {% if user.is_authenticated and user.is_staff %}
-                <li><a href="{% url 'admin:index' %}">Django Admin</a></li>
-            {% endif %}
-        </ul>
-    </nav>
-    <div class="account-actions">
-        <div class="theme-toggle">
-            <label class="theme-toggle__switch">
-                <span class="sr-only">Comută tema</span>
-                <input id="theme-toggle-input" type="checkbox" aria-label="Comută tema întunecată">
-                <span class="theme-toggle__slider round">
-                    <span class="theme-toggle__sun-moon">
-                        <svg class="theme-toggle__moon-dot" data-dot="1" viewBox="0 0 100 100" aria-hidden="true">
-                            <circle cx="50" cy="50" r="50"></circle>
-                        </svg>
-                        <svg class="theme-toggle__moon-dot" data-dot="2" viewBox="0 0 100 100" aria-hidden="true">
-                            <circle cx="50" cy="50" r="50"></circle>
-                        </svg>
-                        <svg class="theme-toggle__moon-dot" data-dot="3" viewBox="0 0 100 100" aria-hidden="true">
-                            <circle cx="50" cy="50" r="50"></circle>
-                        </svg>
-                        <svg class="theme-toggle__light-ray" data-ray="1" viewBox="0 0 100 100" aria-hidden="true">
-                            <circle cx="50" cy="50" r="50"></circle>
-                        </svg>
-                        <svg class="theme-toggle__light-ray" data-ray="2" viewBox="0 0 100 100" aria-hidden="true">
-                            <circle cx="50" cy="50" r="50"></circle>
-                        </svg>
-                        <svg class="theme-toggle__light-ray" data-ray="3" viewBox="0 0 100 100" aria-hidden="true">
-                            <circle cx="50" cy="50" r="50"></circle>
-                        </svg>
-                        <svg class="theme-toggle__cloud theme-toggle__cloud--dark" data-cloud="1" viewBox="0 0 100 100" aria-hidden="true">
-                            <circle cx="50" cy="50" r="50"></circle>
-                        </svg>
-                        <svg class="theme-toggle__cloud theme-toggle__cloud--dark" data-cloud="2" viewBox="0 0 100 100" aria-hidden="true">
-                            <circle cx="50" cy="50" r="50"></circle>
-                        </svg>
-                        <svg class="theme-toggle__cloud theme-toggle__cloud--dark" data-cloud="3" viewBox="0 0 100 100" aria-hidden="true">
-                            <circle cx="50" cy="50" r="50"></circle>
-                        </svg>
-                        <svg class="theme-toggle__cloud theme-toggle__cloud--light" data-cloud="4" viewBox="0 0 100 100" aria-hidden="true">
-                            <circle cx="50" cy="50" r="50"></circle>
-                        </svg>
-                        <svg class="theme-toggle__cloud theme-toggle__cloud--light" data-cloud="5" viewBox="0 0 100 100" aria-hidden="true">
-                            <circle cx="50" cy="50" r="50"></circle>
-                        </svg>
-                        <svg class="theme-toggle__cloud theme-toggle__cloud--light" data-cloud="6" viewBox="0 0 100 100" aria-hidden="true">
-                            <circle cx="50" cy="50" r="50"></circle>
-                        </svg>
-                    </span>
-                    <span class="theme-toggle__stars" aria-hidden="true">
-                        <svg class="theme-toggle__star" data-star="1" viewBox="0 0 20 20">
-                            <path d="M 0 10 C 10 10,10 10 ,0 10 C 10 10 , 10 10 , 10 20 C 10 10 , 10 10 , 20 10 C 10 10 , 10 10 , 10 0 C 10 10,10 10 ,0 10 Z"></path>
-                        </svg>
-                        <svg class="theme-toggle__star" data-star="2" viewBox="0 0 20 20">
-                            <path d="M 0 10 C 10 10,10 10 ,0 10 C 10 10 , 10 10 , 10 20 C 10 10 , 10 10 , 20 10 C 10 10 , 10 10 , 10 0 C 10 10,10 10 ,0 10 Z"></path>
-                        </svg>
-                        <svg class="theme-toggle__star" data-star="3" viewBox="0 0 20 20">
-                            <path d="M 0 10 C 10 10,10 10 ,0 10 C 10 10 , 10 10 , 10 20 C 10 10 , 10 10 , 20 10 C 10 10 , 10 10 , 10 0 C 10 10,10 10 ,0 10 Z"></path>
-                        </svg>
-                        <svg class="theme-toggle__star" data-star="4" viewBox="0 0 20 20">
-                            <path d="M 0 10 C 10 10,10 10 ,0 10 C 10 10 , 10 10 , 10 20 C 10 10 , 10 10 , 20 10 C 10 10 , 10 10 , 10 0 C 10 10,10 10 ,0 10 Z"></path>
-                        </svg>
-                    </span>
-                </span>
-            </label>
-        </div>
-        {% if user.is_authenticated %}
-            <span class="account-actions__user">{{ user.username }}</span>
-            <form action="{% url 'logout' %}" method="post">
-                {% csrf_token %}
-                <button type="submit" class="chip-button">Deconectare</button>
-            </form>
-        {% else %}
-            <a href="{% url 'login' %}" class="chip-button">Autentificare</a>
-            <a href="{% url 'portal:signup' %}" class="chip-button chip-button--ghost">Creează cont</a>
-        {% endif %}
+            {% block content %}{% endblock %}
+        </main>
+
+        <footer class="vista-footer">
+            <p>&copy; {% now "Y" %} OCR Vista Flow · Propulsat de Django &amp; OCRmyPDF.</p>
+        </footer>
     </div>
-</header>
-<main class="app-content">
-    {% if messages %}
-        <div class="toast-stack">
-            {% for message in messages %}
-                <div class="toast toast--{{ message.tags|default:'info' }}">{{ message }}</div>
-            {% endfor %}
-        </div>
-    {% endif %}
-    {% block content %}{% endblock %}
-</main>
-<footer class="app-footer">
-    <p>&copy; {% now "Y" %} OCR Workspace · Construit cu Django și OCRmyPDF.</p>
-</footer>
-<script>
-    const navToggle = document.querySelector('.nav-toggle');
-    const nav = document.getElementById('main-nav');
-    if (navToggle && nav) {
-        navToggle.addEventListener('click', () => {
-            const expanded = navToggle.getAttribute('aria-expanded') === 'true';
-            navToggle.setAttribute('aria-expanded', (!expanded).toString());
-            nav.classList.toggle('is-open');
-        });
-    }
 
-    const themeToggleInput = document.getElementById('theme-toggle-input');
+    <script>
+        const themeToggleButton = document.getElementById('theme-toggle-button');
 
-    const applyTheme = (theme) => {
-        document.documentElement.dataset.theme = theme;
-        if (themeToggleInput) {
-            themeToggleInput.checked = theme === 'dark';
-        }
-        try {
-            window.localStorage.setItem('ocr-theme', theme);
-        } catch (error) {
-            // Ignore storage failures (e.g., private browsing)
-        }
-    };
-
-    (function initializeTheme() {
-        let theme = document.documentElement.dataset.theme || 'light';
-        try {
-            const storedTheme = window.localStorage.getItem('ocr-theme');
-            if (storedTheme) {
-                theme = storedTheme;
-            }
-        } catch (error) {
-            // If storage is unavailable fall back to the current dataset theme
-        }
-        applyTheme(theme);
-    })();
-
-    if (themeToggleInput) {
-        themeToggleInput.addEventListener('change', (event) => {
-            const nextTheme = event.target.checked ? 'dark' : 'light';
-            applyTheme(nextTheme);
-        });
-    }
-
-    if (window.matchMedia) {
-        const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
-        const handlePreferenceChange = (event) => {
+        function applyTheme(theme) {
+            document.documentElement.dataset.theme = theme;
             try {
-                if (!window.localStorage.getItem('ocr-theme')) {
-                    applyTheme(event.matches ? 'dark' : 'light');
+                window.localStorage.setItem('ocr-theme', theme);
+            } catch (error) {
+                // ignore storage failures
+            }
+        }
+
+        (function syncInitialTheme() {
+            let active = document.documentElement.dataset.theme || 'light';
+            try {
+                const stored = window.localStorage.getItem('ocr-theme');
+                if (stored) {
+                    active = stored;
                 }
             } catch (error) {
-                applyTheme(event.matches ? 'dark' : 'light');
+                // ignore
             }
-        };
-        if (mediaQuery.addEventListener) {
-            mediaQuery.addEventListener('change', handlePreferenceChange);
-        } else if (mediaQuery.addListener) {
-            mediaQuery.addListener(handlePreferenceChange);
+            applyTheme(active);
+        })();
+
+        if (themeToggleButton) {
+            themeToggleButton.addEventListener('click', () => {
+                const current = document.documentElement.dataset.theme === 'dark' ? 'dark' : 'light';
+                applyTheme(current === 'dark' ? 'light' : 'dark');
+            });
         }
-    }
-</script>
+
+        if (window.matchMedia) {
+            const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
+            const handleChange = (event) => {
+                try {
+                    if (!window.localStorage.getItem('ocr-theme')) {
+                        applyTheme(event.matches ? 'dark' : 'light');
+                    }
+                } catch (error) {
+                    applyTheme(event.matches ? 'dark' : 'light');
+                }
+            };
+
+            if (mediaQuery.addEventListener) {
+                mediaQuery.addEventListener('change', handleChange);
+            } else if (mediaQuery.addListener) {
+                mediaQuery.addListener(handleChange);
+            }
+        }
+
+        const drawer = document.querySelector('[data-drawer]');
+        const drawerToggle = document.querySelector('[data-drawer-toggle]');
+        const drawerOverlay = document.querySelector('[data-drawer-overlay]');
+        const drawerCloseButtons = document.querySelectorAll('[data-drawer-close]');
+        const drawerLinks = drawer ? drawer.querySelectorAll('a[href]') : [];
+
+        function openDrawer() {
+            if (!drawer) return;
+            drawer.hidden = false;
+            drawer.classList.add('is-open');
+            if (drawerOverlay) {
+                drawerOverlay.hidden = false;
+                drawerOverlay.classList.add('is-active');
+            }
+            if (drawerToggle) {
+                drawerToggle.setAttribute('aria-expanded', 'true');
+            }
+            const firstLink = drawer.querySelector('a, button');
+            if (firstLink) {
+                firstLink.focus({ preventScroll: true });
+            }
+        }
+
+        function closeDrawer({ focusToggle = true } = {}) {
+            if (!drawer) return;
+            drawer.classList.remove('is-open');
+            if (drawerOverlay) {
+                drawerOverlay.classList.remove('is-active');
+                setTimeout(() => {
+                    drawerOverlay.hidden = true;
+                }, 200);
+            }
+            if (drawerToggle && focusToggle) {
+                drawerToggle.setAttribute('aria-expanded', 'false');
+                drawerToggle.focus({ preventScroll: true });
+            } else if (drawerToggle) {
+                drawerToggle.setAttribute('aria-expanded', 'false');
+            }
+            setTimeout(() => {
+                drawer.hidden = true;
+            }, 220);
+        }
+
+        if (drawerToggle) {
+            drawerToggle.addEventListener('click', () => {
+                if (!drawer) return;
+                if (drawer.hidden) {
+                    openDrawer();
+                } else if (drawer.classList.contains('is-open')) {
+                    closeDrawer();
+                } else {
+                    openDrawer();
+                }
+            });
+        }
+
+        drawerCloseButtons.forEach((button) => {
+            button.addEventListener('click', () => closeDrawer());
+        });
+
+        drawerLinks.forEach((link) => {
+            link.addEventListener('click', () => closeDrawer({ focusToggle: false }));
+        });
+
+        if (drawerOverlay) {
+            drawerOverlay.addEventListener('click', () => closeDrawer());
+        }
+
+        document.addEventListener('keydown', (event) => {
+            if (event.key === 'Escape' && drawer && drawer.classList.contains('is-open')) {
+                closeDrawer();
+            }
+        });
+    </script>
 </body>
 </html>

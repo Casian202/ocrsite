@@ -1,0 +1,3 @@
+{% if label %}
+<label{% if label_for %} for="{{ label_for }}"{% endif %}{% if attrs %}{% include "django/forms/attrs.html" %}{% endif %}>{{ label|safe }}</label>
+{% endif %}
