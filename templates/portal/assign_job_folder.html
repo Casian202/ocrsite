@@ -3,10 +3,10 @@
 {% block title %}Alocă în folder | OCR Workspace{% endblock %}
 
 {% block content %}
-<section class="surface-card narrow-card">
+<section class="surface-card" style="max-width: 640px; margin-inline: auto;">
     <h1 class="section-title">Salvează documentul în bibliotecă</h1>
     <p class="muted">Alege folderul în care dorești să stochezi rezultatul jobului <strong>{{ job.processed_filename|default:job.source_file.name }}</strong>.</p>
-    <form method="post" class="form-layout">
+    <form method="post" class="form-layout" style="margin-top: var(--space-5);">
         {% csrf_token %}
         <div class="form-field">
             {{ form.destination_folder.label_tag }}
@@ -14,7 +14,7 @@
             <small class="help-text">{{ form.destination_folder.help_text }}</small>
             {{ form.destination_folder.errors }}
         </div>
-        <div class="form-actions">
+        <div class="form-actions" style="justify-content: flex-end; gap: var(--space-3);">
             <a href="{% url 'portal:ocr' %}" class="btn btn--ghost">Renunță</a>
             <button type="submit" class="btn btn--primary">Salvează în folder</button>
         </div>

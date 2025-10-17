@@ -3,10 +3,10 @@
 {% block title %}Înregistrare | OCR Workspace{% endblock %}
 
 {% block content %}
-<section class="auth-card">
-    <h1>Creează un cont</h1>
+<section class="surface-card" style="max-width: 540px; margin-inline: auto;">
+    <h1 class="section-title">Creează un cont</h1>
     <p class="muted">Completează datele de mai jos pentru a solicita acces. Administratorul va aproba cererea și îți va atribui modulele necesare.</p>
-    <form method="post" class="form-layout">
+    <form method="post" class="form-layout" style="margin-top: var(--space-5);">
         {% csrf_token %}
         {{ form.non_field_errors }}
         <div class="form-field">
@@ -29,7 +29,9 @@
             {{ form.password2 }}
             {{ form.password2.errors }}
         </div>
-        <button type="submit" class="btn btn--primary">Trimite cererea</button>
+        <div class="form-actions" style="justify-content:flex-end;">
+            <button type="submit" class="btn btn--primary">Trimite cererea</button>
+        </div>
     </form>
 </section>
 {% endblock %}

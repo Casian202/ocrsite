@@ -58,7 +58,7 @@
     {% if documents %}
         <div class="document-list" style="display:grid; gap: var(--space-4);">
             {% for doc in documents %}
-                <div class="job-card job-card--static">
+                <div class="job-card" style="cursor: default;">
                     <div class="job-card__meta">
                         <h3>{{ doc.title }}</h3>
                         <p>Creat {{ doc.created_at|date:"d.m.Y H:i" }}</p>
