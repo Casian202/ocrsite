@@ -3,11 +3,22 @@
 {% block title %}{{ folder.name }} | Biblioteci{% endblock %}
 
 {% block content %}
-<section class="section-header">
-    <div>
+<section class="page-header">
+    <div class="page-header__text">
+        <a href="{% url 'portal:libraries' %}" class="btn btn--ghost" style="margin-bottom: var(--space-4);">&larr; Înapoi la biblioteci</a>
         <h1>{{ folder.name }}</h1>
-        {% if folder.description %}<p>{{ folder.description }}</p>{% endif %}
-        <a href="{% url 'portal:libraries' %}" class="chip-button chip-button--ghost">&larr; Înapoi la biblioteci</a>
+        {% if folder.description %}
+            <p>{{ folder.description }}</p>
+        {% endif %}
+    </div>
+    <div class="folder-toolbar__actions">
+        <a
+            href="{% url 'portal:download_library_archive' folder.id %}"
+            class="btn btn--primary"
+            aria-label="Descarcă folderul ca arhivă ZIP"
+        >
+            Descarcă arhiva folderului
+        </a>
     </div>
     <div class="section-header__actions">
         <a
@@ -24,16 +35,19 @@
     </div>
 </section>
 
-<section class="card">
-    <h2>Documente în folder</h2>
+<section class="surface-card">
+    <div class="folder-toolbar">
+        <h2 class="section-title">Documente în folder</h2>
+        <span class="status-chip">{{ documents|length }} fișiere procesate</span>
+    </div>
     {% if documents %}
-        <table class="data-table">
+        <table class="table-card">
             <thead>
                 <tr>
                     <th>Titlu</th>
                     <th>Creat</th>
-                    <th>OCR Job</th>
-                    <th></th>
+                    <th>Status OCR</th>
+                    <th style="text-align:right;">Acțiuni</th>
                 </tr>
             </thead>
             <tbody>
@@ -42,10 +56,10 @@
                         <td>{{ document.title }}</td>
                         <td>{{ document.created_at|date:"d.m.Y H:i" }}</td>
                         <td>{% if document.ocr_job %}{{ document.ocr_job.get_status_display }}{% else %}-{% endif %}</td>
-                        <td class="table-actions">
-                            <a href="{% url 'portal:preview' document.id %}" class="chip-button">Previzualizează</a>
+                        <td style="text-align:right; display:flex; justify-content:flex-end; gap:var(--space-3);">
+                            <a href="{% url 'portal:preview' document.id %}" class="btn btn--ghost">Previzualizează</a>
                             {% if document.processed_file %}
-                                <a href="{% url 'portal:download_document' document.id %}" class="chip-button chip-button--ghost">Descarcă PDF</a>
+                                <a href="{% url 'portal:download_document' document.id %}" class="btn btn--primary">Descarcă PDF</a>
                             {% endif %}
                         </td>
                     </tr>
@@ -53,7 +67,7 @@
             </tbody>
         </table>
     {% else %}
-        <p class="muted">Acest folder nu conține încă documente.</p>
+        <p class="muted">Acest folder nu conține încă documente procesate.</p>
     {% endif %}
 </section>
 {% endblock %}
