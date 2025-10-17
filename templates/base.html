@@ -9,240 +9,150 @@
         (function () {
             try {
                 const storedTheme = window.localStorage.getItem('ocr-theme');
-                if (storedTheme) {
-                    document.documentElement.dataset.theme = storedTheme;
-                    return;
-                }
                 const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
-                document.documentElement.dataset.theme = prefersDark ? 'dark' : 'light';
+                const theme = storedTheme || (prefersDark ? 'dark' : 'light');
+                document.documentElement.dataset.theme = theme;
             } catch (error) {
                 document.documentElement.dataset.theme = 'light';
             }
         })();
     </script>
+    <link rel="stylesheet" href="{% static 'css/styles.css' %}">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="{% static 'css/styles.css' %}">
 </head>
 <body>
-    <a href="#main-content" class="skip-link">Sari la conținut</a>
-    <div class="app-shell">
-        <header class="shell-header" data-header>
-            <div class="header-left">
-                <button type="button" class="nav-trigger" data-nav-toggle aria-expanded="false" aria-controls="portal-navigation" aria-label="Deschide meniul principal">
-                    <span class="nav-trigger__bars" aria-hidden="true"><span></span></span>
-                </button>
-                <a href="{% url 'portal:home' %}" class="brand" aria-label="Pagina principală OCR Workspace">
-                    <span class="brand__logo" aria-hidden="true">⚡️</span>
-                    <span class="brand__text">OCR Workspace</span>
-                </a>
-            </div>
-            <div class="header-right">
-                <button id="theme-toggle-button" type="button" class="btn btn--ghost btn--icon" aria-label="Comută tema">
-                    <span class="theme-icon theme-icon--sun" aria-hidden="true">☀️</span>
-                    <span class="theme-icon theme-icon--moon" aria-hidden="true">🌙</span>
-                </button>
-                {% if user.is_authenticated %}
-                    {% if user.is_staff %}
-                        <a href="{% url 'admin:index' %}" class="btn btn--ghost">Administrare</a>
-                    {% endif %}
-                    <span class="user-chip" aria-label="Utilizator autentificat">{{ user.username }}</span>
-                    <form action="{% url 'logout' %}" method="post" class="inline-form">
-                        {% csrf_token %}
-                        <button type="submit" class="btn btn--primary">Deconectare</button>
-                    </form>
-                {% else %}
-                    <a href="{% url 'login' %}" class="btn btn--primary">Autentificare</a>
-                    <a href="{% url 'portal:signup' %}" class="btn btn--ghost">Creează cont</a>
-                {% endif %}
-            </div>
-        </header>
-
-        <div class="nav-layer" data-nav-layer>
-            <div class="nav-layer__backdrop" data-nav-close></div>
-            <nav class="nav-drawer" id="portal-navigation" aria-label="Navigare principală">
-                <div class="nav-drawer__header">
-                    <div class="nav-drawer__brand">
-                        <span class="brand__logo" aria-hidden="true">⚡️</span>
-                        <span class="brand__text">OCR Workspace</span>
-                    </div>
-                    <button type="button" class="nav-close" data-nav-close aria-label="Închide meniul">
-                        <span aria-hidden="true">×</span>
-                    </button>
-                </div>
-                <div class="nav-drawer__body">
-                    <ul class="nav-list">
-                        <li>
-                            <a href="{% url 'portal:home' %}" class="nav-link {% if request.resolver_match.url_name == 'home' %}is-active{% endif %}">
-                                <span class="nav-link__icon" aria-hidden="true">🏠</span>
-                                Instrucțiuni
-                            </a>
-                        </li>
-                        {% if user.is_authenticated and portal_menu_items %}
-                            {% for item in portal_menu_items %}
-                                <li>
-                                    {% if item.key == 'ocr' %}
-                                        <a href="{% url 'portal:ocr' %}" class="nav-link {% if request.resolver_match.url_name == 'ocr' %}is-active{% endif %}">
-                                            <span class="nav-link__icon" aria-hidden="true">🖨️</span>
-                                            {{ item.label }}
-                                        </a>
-                                    {% elif item.key == 'libraries' %}
-                                        {% with current=request.resolver_match.url_name %}
-                                            <a href="{% url 'portal:libraries' %}" class="nav-link {% if current == 'libraries' or current == 'library_detail' %}is-active{% endif %}">
-                                                <span class="nav-link__icon" aria-hidden="true">📁</span>
-                                                {{ item.label }}
-                                            </a>
-                                        {% endwith %}
-                                    {% elif item.key == 'preview' %}
-                                        {% with current=request.resolver_match.url_name %}
-                                            <a href="{% url 'portal:preview_hub' %}" class="nav-link {% if current == 'preview' or current == 'preview_hub' %}is-active{% endif %}">
-                                                <span class="nav-link__icon" aria-hidden="true">👁️</span>
-                                                {{ item.label }}
-                                            </a>
-                                        {% endwith %}
-                                    {% elif item.key == 'word' %}
-                                        <a href="{% url 'portal:word' %}" class="nav-link {% if request.resolver_match.url_name == 'word' %}is-active{% endif %}">
-                                            <span class="nav-link__icon" aria-hidden="true">📝</span>
-                                            {{ item.label }}
-                                        </a>
-                                    {% elif item.key == 'admin' %}
-                                        <a href="{% url 'portal:admin' %}" class="nav-link {% if request.resolver_match.url_name == 'admin' %}is-active{% endif %}">
-                                            <span class="nav-link__icon" aria-hidden="true">🛠️</span>
-                                            {{ item.label }}
-                                        </a>
-                                    {% endif %}
-                                </li>
-                            {% endfor %}
+<header class="app-header">
+    <a href="{% url 'portal:home' %}" class="app-logo" aria-label="Pagina principală">
+        <span class="app-logo__icon" aria-hidden="true">🟢</span>
+    </a>
+    <button class="nav-toggle" aria-expanded="false" aria-controls="main-nav" aria-label="Comută navigarea">☰</button>
+    <nav id="main-nav" class="main-nav">
+        <ul>
+            <li><a href="{% url 'portal:home' %}" class="{% if request.resolver_match.url_name == 'home' %}is-active{% endif %}">Instrucțiuni</a></li>
+            {% if user.is_authenticated and portal_menu_items %}
+                {% for item in portal_menu_items %}
+                    <li>
+                        {% if item.key == 'ocr' %}
+                            <a href="{% url 'portal:ocr' %}" class="{% if request.resolver_match.url_name == 'ocr' %}is-active{% endif %}">{{ item.label }}</a>
+                        {% elif item.key == 'libraries' %}
+                            {% with current=request.resolver_match.url_name %}
+                                <a href="{% url 'portal:libraries' %}" class="{% if current == 'libraries' or current == 'library_detail' %}is-active{% endif %}">{{ item.label }}</a>
+                            {% endwith %}
+                        {% elif item.key == 'preview' %}
+                            {% with current=request.resolver_match.url_name %}
+                                <a href="{% url 'portal:preview_hub' %}" class="{% if current == 'preview' or current == 'preview_hub' %}is-active{% endif %}">{{ item.label }}</a>
+                            {% endwith %}
+                        {% elif item.key == 'word' %}
+                            <a href="{% url 'portal:word' %}" class="{% if request.resolver_match.url_name == 'word' %}is-active{% endif %}">{{ item.label }}</a>
+                        {% elif item.key == 'admin' %}
+                            <a href="{% url 'portal:admin' %}" class="{% if request.resolver_match.url_name == 'admin' %}is-active{% endif %}">{{ item.label }}</a>
                         {% endif %}
-                    </ul>
-                </div>
-            </nav>
-        </div>
-
-        <main class="shell-main" id="main-content">
-            {% if messages %}
-                <div class="toast-stack" role="status" aria-live="polite">
-                    {% for message in messages %}
-                        <div class="toast toast--{{ message.tags|default:'info' }}">{{ message }}</div>
-                    {% endfor %}
-                </div>
+                    </li>
+                {% endfor %}
             {% endif %}
-            {% block content %}{% endblock %}
-        </main>
-
-        <footer class="shell-footer">
-            <p>&copy; {% now "Y" %} OCR Workspace · Alimentat de Django și OCRmyPDF.</p>
-        </footer>
+        </ul>
+    </nav>
+    <div class="account-actions">
+        <div class="theme-toggle">
+            <button id="theme-toggle-button" type="button" class="theme-toggle__button" aria-label="Comută tema">
+                <span class="theme-toggle__icon theme-toggle__icon--light" aria-hidden="true">🌞</span>
+                <span class="theme-toggle__label">Tema</span>
+                <span class="theme-toggle__icon theme-toggle__icon--dark" aria-hidden="true">🌙</span>
+            </button>
+        </div>
+        {% if user.is_authenticated %}
+            {% if user.is_staff %}
+                <a href="{% url 'admin:index' %}" class="chip-button chip-button--ghost">Django Admin</a>
+            {% endif %}
+            <span class="account-actions__user">{{ user.username }}</span>
+            <form action="{% url 'logout' %}" method="post">
+                {% csrf_token %}
+                <button type="submit" class="chip-button">Deconectare</button>
+            </form>
+        {% else %}
+            <a href="{% url 'login' %}" class="chip-button">Autentificare</a>
+            <a href="{% url 'portal:signup' %}" class="chip-button chip-button--ghost">Creează cont</a>
+        {% endif %}
     </div>
+</header>
+<main class="app-content">
+    {% if messages %}
+        <div class="toast-stack">
+            {% for message in messages %}
+                <div class="toast toast--{{ message.tags|default:'info' }}">{{ message }}</div>
+            {% endfor %}
+        </div>
+    {% endif %}
+    {% block content %}{% endblock %}
+</main>
+<footer class="app-footer">
+    <p>&copy; {% now "Y" %} OCR Workspace · Construit cu Django și OCRmyPDF.</p>
+</footer>
+<script>
+    const navToggle = document.querySelector('.nav-toggle');
+    const nav = document.getElementById('main-nav');
+    if (navToggle && nav) {
+        navToggle.addEventListener('click', () => {
+            const expanded = navToggle.getAttribute('aria-expanded') === 'true';
+            navToggle.setAttribute('aria-expanded', (!expanded).toString());
+            nav.classList.toggle('is-open');
+        });
+    }
 
-    <script>
-        const themeToggleButton = document.getElementById('theme-toggle-button');
-        const applyTheme = (theme) => {
-            document.documentElement.dataset.theme = theme;
-            if (themeToggleButton) {
-                themeToggleButton.setAttribute('data-theme', theme);
-            }
-            try {
-                window.localStorage.setItem('ocr-theme', theme);
-            } catch (error) {
-                // Ignoră erorile de stocare
-            }
-        };
+    const themeToggleButton = document.getElementById('theme-toggle-button');
 
-        (function initializeTheme() {
-            let theme = document.documentElement.dataset.theme || 'light';
-            try {
-                const storedTheme = window.localStorage.getItem('ocr-theme');
-                if (storedTheme) {
-                    theme = storedTheme;
-                }
-            } catch (error) {
-                // păstrează tema curentă
-            }
-            applyTheme(theme);
-        })();
-
+    const applyTheme = (theme) => {
+        document.documentElement.dataset.theme = theme;
         if (themeToggleButton) {
-            themeToggleButton.addEventListener('click', () => {
-                const currentTheme = document.documentElement.dataset.theme || 'light';
-                const nextTheme = currentTheme === 'dark' ? 'light' : 'dark';
-                applyTheme(nextTheme);
-            });
+            themeToggleButton.setAttribute('data-theme', theme);
         }
+        try {
+            window.localStorage.setItem('ocr-theme', theme);
+        } catch (error) {
+            // Ignore storage failures (e.g., private browsing)
+        }
+    };
 
-        if (window.matchMedia) {
-            const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
-            const handlePreferenceChange = (event) => {
-                try {
-                    if (!window.localStorage.getItem('ocr-theme')) {
-                        applyTheme(event.matches ? 'dark' : 'light');
-                    }
-                } catch (error) {
+    (function initializeTheme() {
+        let theme = document.documentElement.dataset.theme || 'light';
+        try {
+            const storedTheme = window.localStorage.getItem('ocr-theme');
+            if (storedTheme) {
+                theme = storedTheme;
+            }
+        } catch (error) {
+            // If storage is unavailable fall back to the current dataset theme
+        }
+        applyTheme(theme);
+    })();
+
+    if (themeToggleButton) {
+        themeToggleButton.addEventListener('click', () => {
+            const currentTheme = document.documentElement.dataset.theme || 'light';
+            const nextTheme = currentTheme === 'dark' ? 'light' : 'dark';
+            applyTheme(nextTheme);
+        });
+    }
+
+    if (window.matchMedia) {
+        const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
+        const handlePreferenceChange = (event) => {
+            try {
+                if (!window.localStorage.getItem('ocr-theme')) {
                     applyTheme(event.matches ? 'dark' : 'light');
                 }
-            };
-            if (mediaQuery.addEventListener) {
-                mediaQuery.addEventListener('change', handlePreferenceChange);
-            } else if (mediaQuery.addListener) {
-                mediaQuery.addListener(handlePreferenceChange);
-            }
-        }
-
-        const navLayer = document.querySelector('[data-nav-layer]');
-        const navDrawer = navLayer ? navLayer.querySelector('.nav-drawer') : null;
-        const navBackdrop = navLayer ? navLayer.querySelector('.nav-layer__backdrop') : null;
-        const navToggle = document.querySelector('[data-nav-toggle]');
-        const navClosers = document.querySelectorAll('[data-nav-close]');
-        let navPreviouslyFocused = null;
-
-        const openNavigation = () => {
-            if (!navLayer || !navDrawer) return;
-            navPreviouslyFocused = document.activeElement;
-            navLayer.classList.add('is-open');
-            navToggle && navToggle.setAttribute('aria-expanded', 'true');
-            const focusable = navDrawer.querySelector('a, button');
-            if (focusable) {
-                focusable.focus({ preventScroll: true });
+            } catch (error) {
+                applyTheme(event.matches ? 'dark' : 'light');
             }
         };
-
-        const closeNavigation = ({ restoreFocus = true } = {}) => {
-            if (!navLayer || !navDrawer) return;
-            navLayer.classList.remove('is-open');
-            navToggle && navToggle.setAttribute('aria-expanded', 'false');
-            if (restoreFocus && navPreviouslyFocused) {
-                navPreviouslyFocused.focus({ preventScroll: true });
-            }
-        };
-
-        if (navToggle) {
-            navToggle.addEventListener('click', () => {
-                if (navLayer && navLayer.classList.contains('is-open')) {
-                    closeNavigation();
-                } else {
-                    openNavigation();
-                }
-            });
+        if (mediaQuery.addEventListener) {
+            mediaQuery.addEventListener('change', handlePreferenceChange);
+        } else if (mediaQuery.addListener) {
+            mediaQuery.addListener(handlePreferenceChange);
         }
-
-        navClosers.forEach((button) => {
-            button.addEventListener('click', () => closeNavigation());
-        });
-
-        if (navLayer && navBackdrop) {
-            navLayer.addEventListener('click', (event) => {
-                if (event.target === navBackdrop) {
-                    closeNavigation();
-                }
-            });
-        }
-
-        document.addEventListener('keydown', (event) => {
-            if (event.key === 'Escape' && navLayer && navLayer.classList.contains('is-open')) {
-                closeNavigation();
-            }
-        });
-    </script>
+    }
+</script>
 </body>
 </html>
