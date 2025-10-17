@@ -3,21 +3,21 @@
 {% block title %}Word Studio | OCR Workspace{% endblock %}
 
 {% block content %}
-<section class="section-header">
-    <div>
+<section class="page-header">
+    <div class="page-header__text">
         <h1>Word Studio</h1>
-        <p>Creează documente .docx sau convertește PDF-uri procesate în fișiere Word editabile.</p>
-        <p class="muted">Conversiile folosesc motorul <strong>{{ engine_label }}</strong> selectat în consola de administrare.</p>
+        <p>Creează documente .docx sau convertește rapid PDF-uri procesate în fișiere Word editabile.</p>
+        <p class="muted">Conversiile folosesc motorul <strong>{{ engine_label }}</strong> configurat în consola de administrare.</p>
         {% if engine_key == 'docling' %}
-            <p class="muted">Textul extras poate fi diferit față de OCRmyPDF, iar formatările complexe pot fi simplificate.</p>
+            <p class="muted">Docling poate simplifica formatările complexe față de OCRmyPDF.</p>
         {% endif %}
     </div>
 </section>
 
-<section class="card-grid">
-    <article class="card">
+<section class="page-grid">
+    <article class="surface-card">
         <h2>Document Word nou</h2>
-        <form method="post">
+        <form method="post" class="form-layout">
             {% csrf_token %}
             {{ create_form.non_field_errors }}
             <div class="form-field">
@@ -29,13 +29,13 @@
                 {{ create_form.body }}
             </div>
             <div class="form-actions">
-                <button type="submit" name="create_word" class="primary-button">Generează document</button>
+                <button type="submit" name="create_word" class="btn btn--primary">Generează document</button>
             </div>
         </form>
     </article>
-    <article class="card">
+    <article class="surface-card">
         <h2>Conversie PDF &rarr; Word</h2>
-        <form method="post" enctype="multipart/form-data">
+        <form method="post" enctype="multipart/form-data" class="form-layout">
             {% csrf_token %}
             {{ convert_form.non_field_errors }}
             <div class="form-field">
@@ -47,24 +47,24 @@
                 {{ convert_form.pdf_file }}
             </div>
             <div class="form-actions">
-                <button type="submit" name="convert_pdf" class="chip-button">Convertește PDF</button>
+                <button type="submit" name="convert_pdf" class="btn btn--ghost">Convertește PDF</button>
             </div>
         </form>
     </article>
 </section>
 
-<section class="card">
-    <h2>Documentele tale Word</h2>
+<section class="surface-card">
+    <h2 class="section-title">Documentele tale Word</h2>
     {% if documents %}
-        <div class="document-list">
+        <div class="document-list" style="display:grid; gap: var(--space-4);">
             {% for doc in documents %}
-                <div class="document-item">
-                    <div>
+                <div class="job-card" style="cursor: default;">
+                    <div class="job-card__meta">
                         <h3>{{ doc.title }}</h3>
-                        <p class="muted">Creat {{ doc.created_at|date:"d.m.Y H:i" }}</p>
+                        <p>Creat {{ doc.created_at|date:"d.m.Y H:i" }}</p>
                     </div>
-                    <div class="document-actions">
-                        <a href="{% url 'portal:download_word' doc.id %}" class="chip-button">Descarcă DOCX</a>
+                    <div class="job-actions">
+                        <a href="{% url 'portal:download_word' doc.id %}" class="btn btn--primary">Descarcă DOCX</a>
                     </div>
                 </div>
             {% endfor %}

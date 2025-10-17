@@ -3,64 +3,81 @@
 {% block title %}Biblioteci | OCR Workspace{% endblock %}
 
 {% block content %}
-<section class="section-header">
-    <div>
+<section class="page-header">
+    <div class="page-header__text">
         <h1>Biblioteci de documente</h1>
-        <p>Organizează documentele procesate în foldere colorate și accesează rapid istoricul fiecărei colecții.</p>
+        <p>Grupează documentele OCR în colecții colorate, organizează-le pe niveluri și descarcă foldere întregi la nevoie.</p>
     </div>
 </section>
 
-<section class="library-layout">
+<section class="library-grid">
     <aside class="library-sidebar">
-        <div class="sidebar-card">
-            <h2>Crează un folder</h2>
-            <form method="post">
+        <article class="sidebar-card">
+            <h2>Creează un folder</h2>
+            <form method="post" class="form-stack">
                 {% csrf_token %}
                 {{ folder_form.non_field_errors }}
-                {{ folder_form.name.label_tag }}
-                {{ folder_form.name }}
-                {{ folder_form.description.label_tag }}
-                {{ folder_form.description }}
-                {{ folder_form.color.label_tag }}
-                {{ folder_form.color }}
-                {{ folder_form.parent.label_tag }}
-                {{ folder_form.parent }}
-                <button type="submit" name="create_folder" class="chip-button">Salvează folder</button>
+                <div class="form-field">
+                    {{ folder_form.name.label_tag }}
+                    {{ folder_form.name }}
+                </div>
+                <div class="form-field">
+                    {{ folder_form.description.label_tag }}
+                    {{ folder_form.description }}
+                </div>
+                <div class="form-field">
+                    {{ folder_form.color.label_tag }}
+                    {{ folder_form.color }}
+                </div>
+                <div class="form-field">
+                    {{ folder_form.parent.label_tag }}
+                    {{ folder_form.parent }}
+                </div>
+                <button type="submit" name="create_folder" class="btn btn--primary">Salvează folder</button>
             </form>
-        </div>
-        <div class="sidebar-card">
+        </article>
+        <article class="sidebar-card">
             <h2>Încarcă un document</h2>
-            <form method="post" enctype="multipart/form-data">
+            <form method="post" enctype="multipart/form-data" class="form-stack">
                 {% csrf_token %}
                 {{ document_form.non_field_errors }}
-                {{ document_form.folder.label_tag }}
-                {{ document_form.folder }}
-                {{ document_form.title.label_tag }}
-                {{ document_form.title }}
-                {{ document_form.description.label_tag }}
-                {{ document_form.description }}
-                {{ document_form.original_file.label_tag }}
-                {{ document_form.original_file }}
-                <button type="submit" name="upload_document" class="chip-button">Încarcă PDF</button>
+                <div class="form-field">
+                    {{ document_form.folder.label_tag }}
+                    {{ document_form.folder }}
+                </div>
+                <div class="form-field">
+                    {{ document_form.title.label_tag }}
+                    {{ document_form.title }}
+                </div>
+                <div class="form-field">
+                    {{ document_form.description.label_tag }}
+                    {{ document_form.description }}
+                </div>
+                <div class="form-field">
+                    {{ document_form.original_file.label_tag }}
+                    {{ document_form.original_file }}
+                </div>
+                <button type="submit" name="upload_document" class="btn btn--ghost">Încarcă PDF</button>
             </form>
-        </div>
+        </article>
     </aside>
     <section class="library-content">
         {% if folders %}
             <div class="folder-grid">
                 {% for folder in folders %}
-                    <a class="folder-card folder-card--{{ folder.color_token }}" href="{% url 'portal:library_detail' folder.id %}">
-                        <div class="folder-icon">📁</div>
+                    <a class="folder-card" href="{% url 'portal:library_detail' folder.id %}">
                         <div class="folder-meta">
                             <h3>{{ folder.name }}</h3>
-                            {% if folder.description %}<p>{{ folder.description }}</p>{% endif %}
-                            <span class="muted">{{ folder.documents.count }} documente</span>
+                            {% if folder.description %}
+                                <p>{{ folder.description }}</p>
+                            {% endif %}
+                            <span>{{ folder.documents.count }} documente</span>
                         </div>
                     </a>
                 {% endfor %}
             </div>
         {% else %}
-            <p class="muted">Nu există încă foldere. Creează unul folosind formularul din stânga.</p>
+            <p class="muted">Nu există încă foldere. Creează primul folder folosind formularul din stânga.</p>
         {% endif %}
     </section>
 </section>
