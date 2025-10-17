@@ -49,6 +49,7 @@ html, body {
     min-height: 100%;
 }
 
+html,
 body {
     margin: 0;
     font-family: var(--vista-font);
@@ -726,7 +727,9 @@ textarea:focus {
     cursor: pointer;
 }
 
-.advanced-grid {
+.job-scroll {
+    max-height: 420px;
+    overflow-y: auto;
     display: grid;
     gap: var(--vista-space-3);
 }
@@ -822,6 +825,7 @@ textarea:focus {
     border: 1px solid var(--vista-border);
     background: rgba(255, 255, 255, 0.65);
     display: inline-flex;
+    flex-direction: column;
     align-items: center;
     justify-content: center;
     cursor: pointer;
@@ -1116,6 +1120,7 @@ textarea:focus {
 
 .admin-user-link {
     display: flex;
+    flex-wrap: wrap;
     align-items: center;
     justify-content: space-between;
     gap: var(--vista-space-3);
@@ -1291,7 +1296,6 @@ textarea:focus {
         transform: translateY(0);
         opacity: 1;
     }
-}
 
 @keyframes vista-progress {
     0% {
