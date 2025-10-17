@@ -3,61 +3,48 @@
 {% block title %}OCR Studio | OCR Workspace{% endblock %}
 
 {% block content %}
-<section class="page-header">
-    <div class="page-header__text">
+<section class="section-header">
+    <div>
         <h1>OCR Studio</h1>
-        <p>Încarcă PDF-uri, alege limbile și pornește procesarea cu motorul <strong>{{ engine_label }}</strong>. Toate opțiunile sunt la un click distanță într-un panou modern.</p>
+        <p>Procesează PDF-uri folosind motorul <strong>{{ engine_label }}</strong> selectat de administrator.</p>
         {% if engine_key == 'docling' %}
-            <p class="error-text">Acest profil folosește Docling. Unele setări OCR pot fi ignorate în funcție de suportul motorului.</p>
+            <p class="muted">Opțiunile avansate sunt interpretate de Docling. Unele setări pot fi ignorate de acest motor.</p>
             {% if not docling_available %}
-                <p class="error-text">Docling nu este instalat în acest mediu. Cere administratorului instalarea pachetului <code>docling</code>.</p>
+                <p class="error-text">Docling nu este instalat în mediul curent. Cere administratorului să instaleze pachetul <code>docling</code>.</p>
             {% endif %}
         {% endif %}
     </div>
-    <span class="page-header__badge">
+    <div class="badge">
         {% if engine_key == 'ocrmypdf' %}
             OCRmyPDF {{ ocrmypdf_version|default:"" }}
         {% else %}
             Docling
         {% endif %}
-    </span>
+    </div>
 </section>
 
-<section class="page-grid">
-    <article class="surface-card">
-        <h2>Pornește o nouă procesare</h2>
-        <form method="post" enctype="multipart/form-data" class="form-layout" data-ocr-form>
+<section class="card-grid">
+    <article class="card">
+        <h2>Configurează o nouă procesare</h2>
+        <form method="post" enctype="multipart/form-data" class="form-grid">
             {% csrf_token %}
-            <div class="form-field">
+            <div class="form-field full-width">
                 {{ form.pdf_file.label_tag }}
                 {{ form.pdf_file }}
                 <small class="help-text">{{ form.pdf_file.help_text }}</small>
                 {{ form.pdf_file.errors }}
             </div>
-            <div class="form-row">
-                <div class="form-field toggle-field">
-                    {{ form.auto_language }}
-                    {{ form.auto_language.errors }}
-                </div>
-                <div class="form-field">
-                    {{ form.optimize_level.label_tag }}
-                    {{ form.optimize_level }}
-                    <small class="help-text">{{ form.optimize_level.help_text }}</small>
-                    {{ form.optimize_level.errors }}
-                </div>
-                <div class="form-field">
-                    {{ form.output_type.label_tag }}
-                    {{ form.output_type }}
-                    {{ form.output_type.errors }}
-                </div>
+            <div class="form-field toggle-field">
+                {{ form.auto_language }}
+                {{ form.auto_language.errors }}
             </div>
-            <div class="language-selector" data-language-field>
+            <div class="form-field language-field" data-language-field>
                 <label for="{{ form.languages.id_for_label }}">{{ form.languages.label }}</label>
-                <button type="button" class="language-selector__trigger" data-language-toggle aria-expanded="false" aria-controls="language-dropdown">
+                <button type="button" class="language-button" data-language-toggle aria-expanded="false" aria-controls="language-dropdown">
                     <span data-language-summary>Selectează limbile</span>
-                    <span aria-hidden="true">▾</span>
+                    <span class="language-button__caret" aria-hidden="true">▾</span>
                 </button>
-                <div id="language-dropdown" class="language-selector__panel" data-language-dropdown>
+                <div id="language-dropdown" class="language-dropdown" data-language-dropdown>
                     {{ form.languages }}
                     <small class="help-text">{{ form.languages.help_text }}</small>
                     {{ form.languages.errors }}
@@ -69,51 +56,84 @@
                 <small class="help-text">{{ form.destination_folder.help_text }}</small>
                 {{ form.destination_folder.errors }}
             </div>
-            <div class="advanced-actions">
-                <button type="button" class="advanced-trigger" data-advanced-open>⚙️ Setări avansate</button>
+            <div class="advanced-actions full-width">
+                <button type="button" class="advanced-trigger" data-advanced-open>
+                    ⚙️ Setări avansate
+                </button>
             </div>
-            <div class="form-actions">
-                <button type="submit" class="btn btn--primary">Pornește OCR</button>
+            <div class="advanced-overlay" data-advanced-overlay hidden>
+                <div class="advanced-overlay__backdrop" data-advanced-close></div>
+                <div class="advanced-overlay__content" role="dialog" aria-modal="true" aria-labelledby="advanced-settings-title">
+                    <div class="advanced-overlay__header">
+                        <h3 id="advanced-settings-title" class="advanced-overlay__title">Setări avansate</h3>
+                        <button type="button" class="advanced-overlay__close" data-advanced-close aria-label="Închide setările">×</button>
+                    </div>
+                    <div class="advanced-grid">
+                        <div class="form-field">
+                            {{ form.optimize_level.label_tag }}
+                            {{ form.optimize_level }}
+                            <small class="help-text">{{ form.optimize_level.help_text }}</small>
+                        </div>
+                        <div class="advanced-grid__toggles">
+                            {{ form.deskew }}
+                            {{ form.rotate_pages }}
+                            {{ form.remove_background }}
+                            {{ form.clean_final }}
+                            {{ form.skip_text }}
+                            {{ form.force_ocr }}
+                            {{ form.make_sidecar }}
+                        </div>
+                        <div class="form-field">
+                            {{ form.output_type.label_tag }}
+                            {{ form.output_type }}
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="form-actions full-width">
+                <button type="submit" class="primary-button">Pornește OCR</button>
             </div>
         </form>
     </article>
 
-    <article class="surface-card">
-        <div class="history-header">
-            <h2 class="section-title">Istoric procesări</h2>
+    <article class="card">
+        <div class="card-header-row">
+            <h2>Istoric ultimele procesări</h2>
             {% if jobs %}
-                <label class="sr-only" for="job-history-search">Caută în istoric</label>
-                <input
-                    type="search"
-                    id="job-history-search"
-                    class="job-search"
-                    placeholder="Caută procesări"
-                    autocomplete="off"
-                    data-job-search
-                >
+                <div class="job-history-tools">
+                    <label class="sr-only" for="job-history-search">Caută în istoricul procesărilor</label>
+                    <input
+                        type="search"
+                        id="job-history-search"
+                        class="job-search"
+                        placeholder="Caută procesări"
+                        autocomplete="off"
+                        data-job-search
+                        aria-label="Caută în istoricul procesărilor"
+                    />
+                </div>
             {% endif %}
         </div>
         {% if jobs %}
-            <div class="job-scroll" data-job-list>
+            <ul class="job-list" data-job-list>
                 {% for job in jobs %}
-                    <article
-                        class="job-card job-card--{{ job.status }}"
-                        tabindex="0"
+                    <li
+                        class="job-item job-item--{{ job.status }}"
                         data-job-item
                         data-job-title="{{ job.processed_filename|default:job.source_file.name|escape }}"
                         data-job-meta="{{ job.language_labels|escape }}{% if job.destination_folder %} {{ job.destination_folder.name|escape }}{% endif %}"
                     >
-                        <div class="job-card__meta">
-                            <h3>{{ job.processed_filename|default:job.source_file.name }}</h3>
-                            <p>Creat {{ job.created_at|date:"d.m.Y H:i" }} · Limbi: {{ job.language_labels }}</p>
+                        <div class="job-item__details">
+                            <h3 class="job-item__title">{{ job.processed_filename|default:job.source_file.name }}</h3>
+                            <p class="muted">Creat {{ job.created_at|date:"d.m.Y H:i" }} · Limbi: {{ job.language_labels }}</p>
                             {% if job.destination_folder %}
-                                <p>Arhivat în: {{ job.destination_folder.name }}</p>
+                                <p class="muted">Arhivat în: {{ job.destination_folder.name }}</p>
                             {% endif %}
                             {% if job.error_message %}
                                 <p class="error-text">{{ job.error_message }}</p>
                             {% endif %}
                         </div>
-                        <div class="job-actions" role="group" aria-label="Status procesare">
+                        <div class="job-actions" role="group" aria-label="Acțiuni procesare">
                             <span class="status-chip status-chip--{{ job.status }}">{{ job.get_status_display }}</span>
                             <div class="job-menu" data-job-menu>
                                 <button
@@ -124,132 +144,106 @@
                                     aria-expanded="false"
                                     aria-controls="job-menu-{{ job.id }}"
                                     aria-label="Deschide meniul de acțiuni pentru {{ job.processed_filename|default:job.source_file.name }}"
+                                    title="Acțiuni"
                                 >
                                     <svg aria-hidden="true" focusable="false" viewBox="0 0 24 24">
-                                        <path d="M12 7a2 2 0 1 1 0-4 2 2 0 0 1 0 4zm0 7a2 2 0 1 1 0-4 2 2 0 0 1 0 4zm0 7a2 2 0 1 1 0-4 2 2 0 0 1 0 4z" />
+                                        <path d="M12 7.25a4.75 4.75 0 1 0 0 9.5 4.75 4.75 0 0 0 0-9.5Zm10.25 5.25a1 1 0 0 1-.77.97l-1.86.4a7.27 7.27 0 0 1-.66 1.6l1.07 1.57a1 1 0 0 1-.12 1.27l-1.42 1.42a1 1 0 0 1-1.27.12l-1.57-1.07a7.27 7.27 0 0 1-1.6.66l-.4 1.86a1 1 0 0 1-.97.77h-2a1 1 0 0 1-.97-.77l-.4-1.86a7.27 7.27 0 0 1-1.6-.66l-1.57 1.07a1 1 0 0 1-1.27-.12l-1.42-1.42a1 1 0 0 1-.12-1.27l1.07-1.57a7.27 7.27 0 0 1-.66-1.6l-1.86-.4a1 1 0 0 1-.77-.97v-2a1 1 0 0 1 .77-.97l1.86-.4a7.27 7.27 0 0 1 .66-1.6L4.3 6.9a1 1 0 0 1 .12-1.27l1.42-1.42A1 1 0 0 1 7.11 4.1l1.57 1.07a7.27 7.27 0 0 1 1.6-.66l.4-1.86A1 1 0 0 1 11.65 2h2a1 1 0 0 1 .97.77l.4 1.86a7.27 7.27 0 0 1 1.6.66l1.57-1.07a1 1 0 0 1 1.27.12l1.42 1.42a1 1 0 0 1 .12 1.27l-1.07 1.57a7.27 7.27 0 0 1 .66 1.6l1.86.4a1 1 0 0 1 .77.97Zm-12.5 0a2.25 2.25 0 1 1 4.5 0 2.25 2.25 0 0 1-4.5 0Z" />
                                     </svg>
                                 </button>
-                                <div class="job-menu__panel" id="job-menu-{{ job.id }}" role="menu" hidden data-job-menu-panel>
-                                    {% if job.status == 'completed' %}
-                                        <a
-                                            href="{% url 'portal:download_job' job.id %}"
-                                            class="job-menu__action"
-                                            role="menuitem"
-                                            data-job-menu-item
-                                            aria-label="Descarcă PDF"
-                                        >
-                                            <svg aria-hidden="true" focusable="false" viewBox="0 0 24 24">
-                                                <path d="M12 3a1 1 0 0 1 1 1v8.59l2.3-2.3a1 1 0 0 1 1.4 1.42l-4 4a1 1 0 0 1-1.4 0l-4-4a1 1 0 0 1 1.4-1.42L11 12.6V4a1 1 0 0 1 1-1zM5 17a1 1 0 0 1 1-1h12a1 1 0 1 1 0 2H6a1 1 0 0 1-1-1z" />
-                                            </svg>
-                                            Descarcă PDF
-                                        </a>
-                                        <a
-                                            href="{% url 'portal:assign_job_folder' job.id %}"
-                                            class="job-menu__action"
-                                            role="menuitem"
-                                            data-job-menu-item
-                                            aria-label="Salvează în folder"
-                                        >
-                                            <svg aria-hidden="true" focusable="false" viewBox="0 0 24 24">
-                                                <path d="M3 6a2 2 0 0 1 2-2h5.17a2 2 0 0 1 1.41.59L12.59 6H19a2 2 0 0 1 2 2v8a3 3 0 0 1-3 3H6a3 3 0 0 1-3-3V6zm2 0v10a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V9h-8.59l-2-2H5z" />
-                                            </svg>
-                                            Salvează în folder
-                                        </a>
-                                        {% if job.sidecar_file %}
-                                            <a
-                                                href="{% url 'portal:download_sidecar' job.id %}"
-                                                class="job-menu__action"
-                                                role="menuitem"
-                                                data-job-menu-item
-                                                aria-label="Descarcă text"
-                                            >
-                                                <svg aria-hidden="true" focusable="false" viewBox="0 0 24 24">
-                                                    <path d="M7 2a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V9.83a2 2 0 0 0-.59-1.41l-4.83-4.83A2 2 0 0 0 12.17 3H7zm7 2.41L17.59 8H14a1 1 0 0 1-1-1V4.41zM9 11h6a1 1 0 1 1 0 2H9a1 1 0 1 1 0-2zm0 4h4a1 1 0 1 1 0 2H9a1 1 0 0 1 0-2z" />
-                                                </svg>
-                                                Descarcă text
-                                            </a>
+                                <div
+                                    class="job-menu__panel"
+                                    id="job-menu-{{ job.id }}"
+                                    role="menu"
+                                    hidden
+                                    data-job-menu-panel
+                                >
+                                    <ul class="job-menu__list">
+                                        {% if job.status == 'completed' %}
+                                            <li class="job-menu__entry" role="none">
+                                                <a
+                                                    href="{% url 'portal:download_job' job.id %}"
+                                                    class="job-menu__action"
+                                                    role="menuitem"
+                                                    data-job-menu-item
+                                                    aria-label="Descarcă PDF"
+                                                    title="Descarcă PDF"
+                                                >
+                                                    <svg aria-hidden="true" focusable="false" viewBox="0 0 24 24">
+                                                        <path d="M12 3a1 1 0 0 1 1 1v8.586l2.293-2.293a1 1 0 1 1 1.414 1.414l-4 4a1 1 0 0 1-1.414 0l-4-4a1 1 0 1 1 1.414-1.414L11 12.586V4a1 1 0 0 1 1-1zM5 17a1 1 0 0 1 1-1h12a1 1 0 1 1 0 2H6a1 1 0 0 1-1-1z" />
+                                                    </svg>
+                                                    <span class="sr-only">Descarcă PDF</span>
+                                                </a>
+                                            </li>
+                                            <li class="job-menu__entry" role="none">
+                                                <a
+                                                    href="{% url 'portal:assign_job_folder' job.id %}"
+                                                    class="job-menu__action"
+                                                    role="menuitem"
+                                                    data-job-menu-item
+                                                    aria-label="Salvează în folder"
+                                                    title="Salvează în folder"
+                                                >
+                                                    <svg aria-hidden="true" focusable="false" viewBox="0 0 24 24">
+                                                        <path d="M3 6a2 2 0 0 1 2-2h5.172a2 2 0 0 1 1.414.586L12.586 6H19a2 2 0 0 1 2 2v8a3 3 0 0 1-3 3H6a3 3 0 0 1-3-3V6zm2 0v10a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V9H11.414l-2-2H5z" />
+                                                    </svg>
+                                                    <span class="sr-only">Salvează în folder</span>
+                                                </a>
+                                            </li>
+                                            {% if job.sidecar_file %}
+                                                <li class="job-menu__entry" role="none">
+                                                    <a
+                                                        href="{% url 'portal:download_sidecar' job.id %}"
+                                                        class="job-menu__action"
+                                                        role="menuitem"
+                                                        data-job-menu-item
+                                                        aria-label="Descarcă text"
+                                                        title="Descarcă text"
+                                                    >
+                                                        <svg aria-hidden="true" focusable="false" viewBox="0 0 24 24">
+                                                            <path d="M7 2a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V9.828a2 2 0 0 0-.586-1.414l-4.828-4.828A2 2 0 0 0 12.172 3H7zm7 2.414L17.586 8H14a1 1 0 0 1-1-1V4.414zM9 11h6a1 1 0 1 1 0 2H9a1 1 0 1 1 0-2zm0 4h4a1 1 0 1 1 0 2H9a1 1 0 0 1 0-2z" />
+                                                        </svg>
+                                                        <span class="sr-only">Descarcă text</span>
+                                                    </a>
+                                                </li>
+                                            {% endif %}
                                         {% endif %}
-                                    {% endif %}
-                                    <form
-                                        method="post"
-                                        action="{% url 'portal:delete_job' job.id %}"
-                                        class="job-delete-form"
-                                        role="none"
-                                        data-confirm-delete
-                                        data-job-name="{{ job.processed_filename|default:job.source_file.name|escape }}"
-                                    >
-                                        {% csrf_token %}
-                                        <button type="submit" class="job-menu__action job-menu__action--danger" role="menuitem" data-job-menu-item aria-label="Șterge din istoric">
-                                            <svg aria-hidden="true" focusable="false" viewBox="0 0 24 24">
-                                                <path d="M9 3a1 1 0 0 0-1 1v1H5a1 1 0 0 0 0 2h1v12a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2V7h1a1 1 0 1 0 0-2h-3V4a1 1 0 0 0-1-1H9zm1 3h4V5h-4v1zm-1 3a1 1 0 1 1 2 0v8a1 1 0 1 1-2 0V9zm6-1a1 1 0 0 1 1 1v8a1 1 0 1 1-2 0V9a1 1 0 0 1 1-1z" />
-                                            </svg>
-                                            Șterge din istoric
-                                        </button>
-                                    </form>
+                                        <li class="job-menu__entry" role="none">
+                                            <form
+                                                method="post"
+                                                action="{% url 'portal:delete_job' job.id %}"
+                                                class="job-delete-form"
+                                                data-confirm-delete
+                                                data-job-name="{{ job.processed_filename|default:job.source_file.name|escape }}"
+                                            >
+                                                {% csrf_token %}
+                                                <button
+                                                    type="submit"
+                                                    class="job-menu__action job-menu__action--danger"
+                                                    role="menuitem"
+                                                    data-job-menu-item
+                                                    aria-label="Șterge din istoric"
+                                                    title="Șterge din istoric"
+                                                >
+                                                    <svg aria-hidden="true" focusable="false" viewBox="0 0 24 24">
+                                                        <path d="M9 3a1 1 0 0 0-1 1v1H5a1 1 0 1 0 0 2h1v12a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2V7h1a1 1 0 1 0 0-2h-3V4a1 1 0 0 0-1-1H9zm1 3h4V5h-4v1zm-1 3a1 1 0 0 1 2 0v8a1 1 0 1 1-2 0V9zm6-1a1 1 0 0 1 1 1v8a1 1 0 1 1-2 0V9a1 1 0 0 1 1-1z" />
+                                                    </svg>
+                                                    <span class="sr-only">Șterge din istoric</span>
+                                                </button>
+                                            </form>
+                                        </li>
+                                    </ul>
                                 </div>
                             </div>
                         </div>
-                    </article>
+                    </li>
                 {% endfor %}
-            </div>
-            <p class="muted job-empty" data-job-empty hidden>Nu există rezultate pentru filtrul curent.</p>
+            </ul>
+            <p class="muted job-empty" data-job-empty hidden>Nu există rezultate pentru căutarea curentă.</p>
         {% else %}
-            <p class="muted">Nu există încă procesări. Încarcă un document pentru a popula istoricul.</p>
+            <p class="muted">Nu există încă procesări. Încarcă un PDF pentru a porni primul job.</p>
         {% endif %}
     </article>
 </section>
-
-<div class="advanced-overlay" data-advanced-overlay hidden>
-    <div class="advanced-dialog" role="dialog" aria-modal="true" aria-labelledby="advanced-settings-title">
-        <div class="advanced-dialog__header">
-            <h3 id="advanced-settings-title" class="advanced-dialog__title">Setări avansate</h3>
-            <button type="button" class="advanced-dialog__close" data-advanced-close aria-label="Închide setările">×</button>
-        </div>
-        <div class="advanced-grid">
-            <div class="form-field">
-                {{ form.deskew.label_tag }}
-                {{ form.deskew }}
-            </div>
-            <div class="form-field">
-                {{ form.rotate_pages.label_tag }}
-                {{ form.rotate_pages }}
-            </div>
-            <div class="form-field">
-                {{ form.remove_background.label_tag }}
-                {{ form.remove_background }}
-            </div>
-            <div class="form-field">
-                {{ form.clean_final.label_tag }}
-                {{ form.clean_final }}
-            </div>
-            <div class="form-field">
-                {{ form.skip_text.label_tag }}
-                {{ form.skip_text }}
-            </div>
-            <div class="form-field">
-                {{ form.force_ocr.label_tag }}
-                {{ form.force_ocr }}
-            </div>
-            <div class="form-field">
-                {{ form.make_sidecar.label_tag }}
-                {{ form.make_sidecar }}
-            </div>
-        </div>
-    </div>
-</div>
-
-<div class="ocr-loading" data-ocr-loading hidden>
-    <div class="ocr-loading__dialog">
-        <div>
-            <h3>Procesăm documentul</h3>
-            <p class="muted">OCR-ul este în desfășurare. Această fereastră se va închide automat după finalizare.</p>
-        </div>
-        <div class="progress-track">
-            <span class="progress-track__bar"></span>
-        </div>
-    </div>
-</div>
-
 <script>
     document.addEventListener('DOMContentLoaded', () => {
         const autoToggle = document.querySelector('input[name="auto_language"]');
@@ -338,9 +332,7 @@
         const openAdvanced = () => {
             if (!advancedOverlay) return;
             advancedOverlay.hidden = false;
-            requestAnimationFrame(() => {
-                advancedOverlay.classList.add('is-open');
-            });
+            advancedOverlay.classList.add('is-open');
             document.body.classList.add('modal-open');
             focusFirstElement();
         };
@@ -348,10 +340,8 @@
         const closeAdvanced = () => {
             if (!advancedOverlay) return;
             advancedOverlay.classList.remove('is-open');
+            advancedOverlay.hidden = true;
             document.body.classList.remove('modal-open');
-            setTimeout(() => {
-                advancedOverlay.hidden = true;
-            }, 200);
             if (advancedOpen) {
                 advancedOpen.focus({ preventScroll: true });
             }
@@ -371,14 +361,6 @@
             });
         });
 
-        if (advancedOverlay) {
-            advancedOverlay.addEventListener('click', (event) => {
-                if (event.target === advancedOverlay) {
-                    closeAdvanced();
-                }
-            });
-        }
-
         const jobList = document.querySelector('[data-job-list]');
         const jobSearchInput = document.querySelector('[data-job-search]');
         const jobEmptyState = document.querySelector('[data-job-empty]');
@@ -394,6 +376,7 @@
             const panel = menu.querySelector('[data-job-menu-panel]');
             if (panel) {
                 panel.hidden = true;
+                panel.classList.remove('is-open');
             }
             if (toggle) {
                 toggle.setAttribute('aria-expanded', 'false');
@@ -415,6 +398,7 @@
             const panel = menu.querySelector('[data-job-menu-panel]');
             if (panel) {
                 panel.hidden = false;
+                panel.classList.add('is-open');
             }
             if (toggle) {
                 toggle.setAttribute('aria-expanded', 'true');
@@ -504,18 +488,6 @@
                         openJobMenu(menu);
                     }
                 });
-
-                jobItem.addEventListener('keydown', (event) => {
-                    if (event.key === 'Enter' || event.key === ' ') {
-                        event.preventDefault();
-                        if (menu.classList.contains('is-open')) {
-                            closeJobMenu(menu);
-                        } else {
-                            closeAllJobMenus(menu);
-                            openJobMenu(menu);
-                        }
-                    }
-                });
             }
         });
 
@@ -570,18 +542,6 @@
                 closeAllJobMenus(null, { restoreFocus: true });
             }
         });
-
-        const ocrForm = document.querySelector('[data-ocr-form]');
-        const ocrLoading = document.querySelector('[data-ocr-loading]');
-
-        if (ocrForm && ocrLoading) {
-            ocrForm.addEventListener('submit', () => {
-                ocrLoading.hidden = false;
-                requestAnimationFrame(() => {
-                    ocrLoading.classList.add('is-visible');
-                });
-            });
-        }
     });
 </script>
 {% endblock %}

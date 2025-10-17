@@ -3,10 +3,11 @@
 {% block title %}Autentificare | Portal OCR{% endblock %}
 
 {% block content %}
-<section class="surface-card" style="max-width: 480px; margin-inline: auto;">
-    <h1 class="section-title">Autentificare</h1>
-    <p class="muted">Introdu datele tale pentru a accesa interfața web.</p>
-    <form method="post" class="form-layout" style="margin-top: var(--space-5);">
+<div class="auth-wrapper">
+<section class="auth-card">
+    <h1>Autentificare</h1>
+    <p>Introdu datele de conectare pentru a accesa interfata web.</p>
+    <form method="post">
         {% csrf_token %}
         {% if form.non_field_errors %}
             <ul class="errorlist" role="alert">
@@ -25,12 +26,13 @@
             {{ form.password }}
             {{ form.password.errors }}
         </div>
-        <div class="form-actions" style="justify-content:flex-end;">
-            <button type="submit" class="btn btn--primary">Conectare</button>
+        <div class="form-actions">
+            <button type="submit" class="primary-button">Conectare</button>
         </div>
     </form>
-    <p class="muted" style="margin-top: var(--space-4);">
+    <p class="auth-secondary">
         Nu ai încă un cont? <a href="{% url 'portal:signup' %}">Trimite o solicitare de acces</a> către administrator.
     </p>
 </section>
+</div>
 {% endblock %}

@@ -3,34 +3,33 @@
 {% block title %}Previzualizare documente | OCR Workspace{% endblock %}
 
 {% block content %}
-<section class="page-header">
-    <div class="page-header__text">
+<section class="section-header">
+    <div>
         <h1>Previzualizare documente</h1>
-        <p>Alege un document procesat pentru a-l deschide instant în browser sau pentru a-l descărca.</p>
+        <p>Selectează un document procesat pentru a-l vizualiza rapid în browser.</p>
     </div>
 </section>
 
-<section class="surface-card">
+<section class="card">
     {% if documents %}
-        <div class="document-list" style="display:grid; gap: var(--space-4);">
+        <div class="document-list">
             {% for document in documents %}
-                <div class="job-card" style="cursor: default;">
-                    <div class="job-card__meta">
+                <div class="document-item">
+                    <div>
                         <h3>{{ document.title }}</h3>
-                        <p>Folder: {{ document.folder.name }}</p>
-                        <p>Actualizat {{ document.updated_at|date:"d.m.Y H:i" }}</p>
+                        <p class="muted">Folder: {{ document.folder.name }} · Actualizat {{ document.updated_at|date:"d.m.Y H:i" }}</p>
                     </div>
-                    <div class="job-actions" aria-label="Acțiuni document">
-                        <a href="{% url 'portal:preview' document.id %}" class="btn btn--primary">Previzualizează</a>
+                    <div class="document-actions">
+                        <a href="{% url 'portal:preview' document.id %}" class="chip-button">Previzualizează</a>
                         {% if document.processed_file %}
-                            <a href="{% url 'portal:download_document' document.id %}" class="btn btn--ghost">Descarcă PDF</a>
+                            <a href="{% url 'portal:download_document' document.id %}" class="chip-button chip-button--ghost">Descarcă PDF</a>
                         {% endif %}
                     </div>
                 </div>
             {% endfor %}
         </div>
     {% else %}
-        <p class="muted">Nu există documente disponibile pentru previzualizare. Procesează un fișier și salvează-l într-o bibliotecă.</p>
+        <p class="muted">Nu există documente disponibile pentru previzualizare. Procesează un document și salvează-l într-o bibliotecă.</p>
     {% endif %}
 </section>
 {% endblock %}

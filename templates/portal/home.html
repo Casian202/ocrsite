@@ -3,62 +3,62 @@
 {% block title %}Instrucțiuni | OCR Workspace{% endblock %}
 
 {% block content %}
-<section class="hero-split">
-    <div>
-        <h1>Bine ai venit în noul hub OCR</h1>
-        <p>Platforma a fost regândită pentru a fi mai rapidă și mai ușor de utilizat pe orice dispozitiv. Urmează pașii de mai jos pentru a începe.</p>
+<section class="hero-card">
+    <div class="hero-card__text">
+        <h1>Bine ai venit în OCR Workspace</h1>
+        <p>Acesta este hub-ul tău pentru procesarea documentelor cu OCRmyPDF, organizarea bibliotecilor și crearea rapidă de documente Word.</p>
         <ul class="hero-steps">
-            <li><strong>OCR Studio</strong> &mdash; procesează PDF-uri cu toate opțiunile OCRmyPDF.</li>
-            <li><strong>Biblioteci</strong> &mdash; organizează și arhivează rezultatele în colecții colorate.</li>
-            <li><strong>Previzualizare</strong> &mdash; verifică rapid fișierele procesate și descarcă rezultatele.</li>
-            <li><strong>Word Studio</strong> &mdash; redactează rapid documente și convertește PDF-uri.</li>
+            <li><strong>OCR Studio</strong> &mdash; procesează fișiere PDF cu toate opțiunile OCRmyPDF.</li>
+            <li><strong>Biblioteci</strong> &mdash; organizează și colorează folderele pentru a stoca și partaja PDF-uri.</li>
+            <li><strong>Previzualizare</strong> &mdash; vizualizează rapid și descarcă rezultatele procesate.</li>
+            <li><strong>Word Studio</strong> &mdash; creează fișiere Word noi sau convertește PDF-uri existente.</li>
         </ul>
     </div>
-    <div>
+    <div class="hero-card__status">
         {% if access %}
             <div class="status-chip status-chip--{{ access.status }}">Status acces: {{ access.get_status_display }}</div>
             {% if access.allowed_menus %}
-                <p class="muted" style="margin-top: var(--space-4);">Module active:</p>
+                <p class="muted">Module disponibile:</p>
                 <ul class="status-list">
                     {% for label in access.menu_labels %}
                         <li>{{ label }}</li>
                     {% endfor %}
                 </ul>
             {% else %}
-                <p class="muted" style="margin-top: var(--space-4);">Așteaptă aprobarea administratorului pentru a accesa modulele portalului.</p>
+                <p class="muted">Așteaptă aprobarea administratorului pentru a accesa modulele portalului.</p>
             {% endif %}
         {% else %}
-            <p>Autentifică-te sau creează un cont pentru a solicita acces la platformă. Administratorul va aproba cererile din consola dedicată.</p>
+            <p>Creează un cont sau autentifică-te pentru a solicita acces. Administratorul va aproba utilizatorii din consola dedicată.</p>
         {% endif %}
         {% if not user.is_authenticated %}
             <div class="cta-stack">
-                <a href="{% url 'login' %}" class="btn btn--primary">Autentificare</a>
-                <a href="{% url 'portal:signup' %}" class="btn btn--ghost">Solicită acces</a>
+                <a href="{% url 'login' %}" class="primary-button">Autentificare</a>
+                <a href="{% url 'portal:signup' %}" class="secondary-button">Solicită acces</a>
             </div>
         {% endif %}
     </div>
 </section>
 
-<section class="info-columns">
+<section class="info-grid">
     <article class="info-card">
-        <h2>Flux de lucru recomandat</h2>
+        <h2>Fluxul de lucru recomandat</h2>
         <ol>
-            <li>Încarcă un PDF în <strong>OCR Studio</strong> și personalizează setările.</li>
-            <li>Salvează rezultatul într-un folder din <strong>Biblioteci</strong> pentru a-l păstra organizat.</li>
-            <li>Previzualizează documentul în <strong>Previzualizare</strong> și descarcă varianta finală.</li>
-            <li>Dacă ai nevoie de un document editabil, continuă în <strong>Word Studio</strong>.</li>
+            <li>Încarcă un PDF în <strong>OCR Studio</strong> și selectează limbile dorite.</li>
+            <li>Salvează rezultatul într-un folder colorat din <strong>Biblioteci</strong>.</li>
+            <li>Previzualizează documentul din <strong>Previzualizare</strong> și descarcă rezultatul sau fișierul sidecar.</li>
+            <li>Conversie în Word sau redactare de rapoarte în <strong>Word Studio</strong>.</li>
         </ol>
     </article>
     <article class="info-card">
         <h2>Rolul administratorului</h2>
-        <p>Administratorul aprobă utilizatorii și configurează modulele disponibile pentru fiecare cont:</p>
+        <p>Administratorul gestionează cererile de înscriere direct din consola de pe site. Pentru fiecare utilizator poate selecta meniurile disponibile:</p>
         <ul>
-            <li><strong>Instrucțiuni</strong> &mdash; acces la acest ghid.</li>
-            <li><strong>OCR Studio</strong> &mdash; control complet asupra motorului OCR.</li>
-            <li><strong>Biblioteci</strong> &mdash; gestionarea colecțiilor de documente.</li>
-            <li><strong>Previzualizare</strong> &mdash; vizualizarea și descărcarea rezultatelor.</li>
-            <li><strong>Word Studio</strong> &mdash; editare rapidă de documente.</li>
-            <li><strong>Admin Console</strong> &mdash; numai pentru administratori.</li>
+            <li><strong>Instrucțiuni</strong> &mdash; acces la această pagină.</li>
+            <li><strong>OCR Studio</strong> &mdash; acces complet la toate opțiunile OCRmyPDF.</li>
+            <li><strong>Biblioteci</strong> &mdash; gestionarea folderelor și documentelor.</li>
+            <li><strong>Previzualizare</strong> &mdash; vizualizarea documentelor.</li>
+            <li><strong>Word Studio</strong> &mdash; creare și conversie documente Word.</li>
+            <li><strong>Admin Console</strong> &mdash; doar pentru administratori.</li>
         </ul>
     </article>
 </section>
