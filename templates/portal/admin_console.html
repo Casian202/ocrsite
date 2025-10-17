@@ -3,17 +3,17 @@
 {% block title %}Consolă administrator | OCR Workspace{% endblock %}
 
 {% block content %}
-<section class="page-header">
-    <div class="page-header__text">
+<section class="section-header">
+    <div>
         <h1>Consolă administrator</h1>
-        <p>Gestionează cererile de acces și configurează modulele disponibile pentru fiecare utilizator.</p>
+        <p>Gestionează cererile de acces și acordă permisiuni pe module pentru fiecare utilizator.</p>
     </div>
 </section>
 
-<section class="surface-card">
-    <h2 class="section-title">Setări motor OCR</h2>
+<section class="card admin-settings-card">
+    <h2>Setări motor OCR</h2>
     <p class="muted">Motorul curent: <strong>{{ portal_settings.get_ocr_engine_display }}</strong></p>
-    <form method="post" class="form-layout" style="margin-top: var(--space-4);">
+    <form method="post" class="form-grid">
         {% csrf_token %}
         <input type="hidden" name="form_name" value="settings">
         {{ settings_form.non_field_errors }}
@@ -23,32 +23,30 @@
             <small class="help-text">{{ settings_form.ocr_engine.help_text }}</small>
             {{ settings_form.ocr_engine.errors }}
         </div>
-        <div class="form-actions" style="justify-content:flex-end;">
-            <button type="submit" class="btn btn--primary">Salvează setarea</button>
+        <div class="form-actions">
+            <button type="submit" class="primary-button">Salvează setarea</button>
         </div>
     </form>
 </section>
 
-<section class="admin-grid">
-    <aside class="surface-card" style="padding: var(--space-5);">
-        <h2 class="section-title">Utilizatori</h2>
-        <ul style="list-style:none; padding:0; margin:0; display:grid; gap: var(--space-3);">
+<section class="admin-console">
+    <aside class="admin-console__list">
+        <h2>Utilizatori</h2>
+        <ul>
             {% for access in access_list %}
                 <li class="{% if selected_access and selected_access.id == access.id %}is-active{% endif %}">
-                    <a href="{% url 'portal:admin' %}?access_id={{ access.id }}" class="job-card" style="display:flex; align-items:center; justify-content:space-between; padding: var(--space-3) var(--space-4);">
-                        <span>{{ access.user.username }}</span>
-                        <span class="status-chip status-chip--{{ access.status }}">{{ access.get_status_display }}</span>
-                    </a>
+                    <a href="{% url 'portal:admin' %}?access_id={{ access.id }}">{{ access.user.username }}</a>
+                    <span class="status-chip status-chip--{{ access.status }}">{{ access.get_status_display }}</span>
                 </li>
             {% empty %}
                 <li class="muted">Nu există utilizatori înregistrați.</li>
             {% endfor %}
         </ul>
     </aside>
-    <section class="surface-card">
+    <section class="admin-console__detail">
         {% if selected_access and form %}
-            <h2 class="section-title">Editează: {{ selected_access.user.username }}</h2>
-            <form method="post" class="form-layout">
+            <h2>Editează: {{ selected_access.user.username }}</h2>
+            <form method="post">
                 {% csrf_token %}
                 <input type="hidden" name="form_name" value="access">
                 {{ form.non_field_errors }}
@@ -64,12 +62,12 @@
                     {{ form.notes.label_tag }}
                     {{ form.notes }}
                 </div>
-                <div class="form-actions" style="justify-content:flex-end;">
-                    <button type="submit" class="btn btn--primary">Salvează</button>
+                <div class="form-actions">
+                    <button type="submit" class="primary-button">Salvează</button>
                 </div>
             </form>
         {% else %}
-            <p class="muted">Selectează un utilizator din lista din stânga pentru a edita drepturile de acces.</p>
+            <p class="muted">Selectează un utilizator pentru a edita drepturile de acces.</p>
         {% endif %}
     </section>
 </section>
