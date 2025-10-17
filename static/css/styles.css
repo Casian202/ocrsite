@@ -566,7 +566,7 @@ textarea {
     pointer-events: none;
 }
 
-.toggle-switch__track {
+.toggle-switch__slider {
     position: relative;
     width: 74px;
     height: 36px;
@@ -652,6 +652,32 @@ textarea {
 .language-selector select {
     width: 100%;
     min-height: 180px;
+}
+
+.clearable-file {
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+    padding: 0.75rem;
+    border-radius: 12px;
+    border: 1px solid var(--border);
+    background: var(--surface-muted);
+}
+
+.clearable-file__current {
+    font-size: 0.9rem;
+    color: var(--muted);
+}
+
+.clearable-file__current a {
+    font-weight: 600;
+}
+
+.clearable-file__actions {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    font-size: 0.85rem;
 }
 
 .advanced-actions {
