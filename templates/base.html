@@ -8,9 +8,9 @@
     <script>
         (function () {
             try {
-                const storedTheme = window.localStorage.getItem('ocr-theme');
-                if (storedTheme) {
-                    document.documentElement.dataset.theme = storedTheme;
+                const saved = window.localStorage.getItem('ocr-theme');
+                if (saved) {
+                    document.documentElement.dataset.theme = saved;
                     return;
                 }
                 const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
@@ -26,101 +26,103 @@
     <link rel="stylesheet" href="{% static 'css/styles.css' %}">
 </head>
 <body>
-    <a href="#main-content" class="skip-link">Sari la conținut</a>
-    <div class="app-shell">
-        <header class="shell-header" data-header>
-            <div class="header-left">
-                <button type="button" class="nav-trigger" data-nav-toggle aria-expanded="false" aria-controls="portal-navigation" aria-label="Deschide meniul principal">
-                    <span class="nav-trigger__bars" aria-hidden="true"><span></span></span>
+    <a class="skip-link" href="#main-content">Sari la conținut</a>
+    <div class="vista-app">
+        <header class="vista-topbar">
+            <div class="vista-topbar__left">
+                <button
+                    type="button"
+                    class="vista-menu-toggle"
+                    data-drawer-toggle
+                    aria-label="Deschide navigarea"
+                    aria-expanded="false"
+                    aria-controls="portal-navigation"
+                >
+                    <span aria-hidden="true"></span>
                 </button>
-                <a href="{% url 'portal:home' %}" class="brand" aria-label="Pagina principală OCR Workspace">
-                    <span class="brand__logo" aria-hidden="true">⚡️</span>
-                    <span class="brand__text">OCR Workspace</span>
+                <a href="{% url 'portal:home' %}" class="vista-logo" aria-label="Pagina principală OCR Workspace">
+                    <span aria-hidden="true">◎</span>
+                    <span>OCR Vista Flow</span>
                 </a>
             </div>
-            <div class="header-right">
-                <button id="theme-toggle-button" type="button" class="btn btn--ghost btn--icon" aria-label="Comută tema">
-                    <span class="theme-icon theme-icon--sun" aria-hidden="true">☀️</span>
-                    <span class="theme-icon theme-icon--moon" aria-hidden="true">🌙</span>
+            <div class="vista-topbar__right">
+                <button id="theme-toggle-button" type="button" class="vista-action" aria-label="Comută tema">
+                    <svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24"><path fill="currentColor" d="M12 3a1 1 0 0 1 1 1v1.06a7 7 0 1 1-2 0V4a1 1 0 0 1 1-1z"/></svg>
                 </button>
                 {% if user.is_authenticated %}
                     {% if user.is_staff %}
-                        <a href="{% url 'admin:index' %}" class="btn btn--ghost">Administrare</a>
+                        <a class="vista-action" href="{% url 'admin:index' %}">Administrare</a>
                     {% endif %}
-                    <span class="user-chip" aria-label="Utilizator autentificat">{{ user.username }}</span>
+                    <span class="vista-avatar">{{ user.username }}</span>
                     <form action="{% url 'logout' %}" method="post" class="inline-form">
                         {% csrf_token %}
-                        <button type="submit" class="btn btn--primary">Deconectare</button>
+                        <button type="submit" class="vista-action vista-action--primary">Deconectare</button>
                     </form>
                 {% else %}
-                    <a href="{% url 'login' %}" class="btn btn--primary">Autentificare</a>
-                    <a href="{% url 'portal:signup' %}" class="btn btn--ghost">Creează cont</a>
+                    <a href="{% url 'login' %}" class="vista-action vista-action--primary">Autentificare</a>
+                    <a href="{% url 'portal:signup' %}" class="vista-action">Creează cont</a>
                 {% endif %}
             </div>
         </header>
 
-        <div class="nav-layer" data-nav-layer>
-            <div class="nav-layer__backdrop" data-nav-close></div>
-            <nav class="nav-drawer" id="portal-navigation" aria-label="Navigare principală">
-                <div class="nav-drawer__header">
-                    <div class="nav-drawer__brand">
-                        <span class="brand__logo" aria-hidden="true">⚡️</span>
-                        <span class="brand__text">OCR Workspace</span>
-                    </div>
-                    <button type="button" class="nav-close" data-nav-close aria-label="Închide meniul">
-                        <span aria-hidden="true">×</span>
-                    </button>
+        <aside class="vista-drawer" id="portal-navigation" data-drawer hidden>
+            <div class="vista-drawer__head">
+                <div class="vista-drawer__logo">
+                    <span aria-hidden="true">◎</span>
+                    <span>OCR Vista Flow</span>
                 </div>
-                <div class="nav-drawer__body">
-                    <ul class="nav-list">
-                        <li>
-                            <a href="{% url 'portal:home' %}" class="nav-link {% if request.resolver_match.url_name == 'home' %}is-active{% endif %}">
-                                <span class="nav-link__icon" aria-hidden="true">🏠</span>
-                                Instrucțiuni
-                            </a>
-                        </li>
-                        {% if user.is_authenticated and portal_menu_items %}
-                            {% for item in portal_menu_items %}
-                                <li>
-                                    {% if item.key == 'ocr' %}
-                                        <a href="{% url 'portal:ocr' %}" class="nav-link {% if request.resolver_match.url_name == 'ocr' %}is-active{% endif %}">
-                                            <span class="nav-link__icon" aria-hidden="true">🖨️</span>
-                                            {{ item.label }}
+                <button type="button" class="vista-drawer__close" data-drawer-close aria-label="Închide navigarea">×</button>
+            </div>
+            <nav aria-label="Navigare principală">
+                <ul>
+                    <li>
+                        <a href="{% url 'portal:home' %}" class="vista-nav-link {% if request.resolver_match.url_name == 'home' %}is-active{% endif %}">
+                            <span aria-hidden="true">🏠</span>
+                            <span>Instrucțiuni</span>
+                        </a>
+                    </li>
+                    {% if user.is_authenticated and portal_menu_items %}
+                        {% for item in portal_menu_items %}
+                            <li>
+                                {% if item.key == 'ocr' %}
+                                    <a href="{% url 'portal:ocr' %}" class="vista-nav-link {% if request.resolver_match.url_name == 'ocr' %}is-active{% endif %}">
+                                        <span aria-hidden="true">🖨️</span>
+                                        <span>{{ item.label }}</span>
+                                    </a>
+                                {% elif item.key == 'libraries' %}
+                                    {% with current=request.resolver_match.url_name %}
+                                        <a href="{% url 'portal:libraries' %}" class="vista-nav-link {% if current == 'libraries' or current == 'library_detail' %}is-active{% endif %}">
+                                            <span aria-hidden="true">📁</span>
+                                            <span>{{ item.label }}</span>
                                         </a>
-                                    {% elif item.key == 'libraries' %}
-                                        {% with current=request.resolver_match.url_name %}
-                                            <a href="{% url 'portal:libraries' %}" class="nav-link {% if current == 'libraries' or current == 'library_detail' %}is-active{% endif %}">
-                                                <span class="nav-link__icon" aria-hidden="true">📁</span>
-                                                {{ item.label }}
-                                            </a>
-                                        {% endwith %}
-                                    {% elif item.key == 'preview' %}
-                                        {% with current=request.resolver_match.url_name %}
-                                            <a href="{% url 'portal:preview_hub' %}" class="nav-link {% if current == 'preview' or current == 'preview_hub' %}is-active{% endif %}">
-                                                <span class="nav-link__icon" aria-hidden="true">👁️</span>
-                                                {{ item.label }}
-                                            </a>
-                                        {% endwith %}
-                                    {% elif item.key == 'word' %}
-                                        <a href="{% url 'portal:word' %}" class="nav-link {% if request.resolver_match.url_name == 'word' %}is-active{% endif %}">
-                                            <span class="nav-link__icon" aria-hidden="true">📝</span>
-                                            {{ item.label }}
+                                    {% endwith %}
+                                {% elif item.key == 'preview' %}
+                                    {% with current=request.resolver_match.url_name %}
+                                        <a href="{% url 'portal:preview_hub' %}" class="vista-nav-link {% if current == 'preview' or current == 'preview_hub' %}is-active{% endif %}">
+                                            <span aria-hidden="true">👁️</span>
+                                            <span>{{ item.label }}</span>
                                         </a>
-                                    {% elif item.key == 'admin' %}
-                                        <a href="{% url 'portal:admin' %}" class="nav-link {% if request.resolver_match.url_name == 'admin' %}is-active{% endif %}">
-                                            <span class="nav-link__icon" aria-hidden="true">🛠️</span>
-                                            {{ item.label }}
-                                        </a>
-                                    {% endif %}
-                                </li>
-                            {% endfor %}
-                        {% endif %}
-                    </ul>
-                </div>
+                                    {% endwith %}
+                                {% elif item.key == 'word' %}
+                                    <a href="{% url 'portal:word' %}" class="vista-nav-link {% if request.resolver_match.url_name == 'word' %}is-active{% endif %}">
+                                        <span aria-hidden="true">📝</span>
+                                        <span>{{ item.label }}</span>
+                                    </a>
+                                {% elif item.key == 'admin' %}
+                                    <a href="{% url 'portal:admin' %}" class="vista-nav-link {% if request.resolver_match.url_name == 'admin' %}is-active{% endif %}">
+                                        <span aria-hidden="true">🛠️</span>
+                                        <span>{{ item.label }}</span>
+                                    </a>
+                                {% endif %}
+                            </li>
+                        {% endfor %}
+                    {% endif %}
+                </ul>
             </nav>
-        </div>
+        </aside>
+        <div class="vista-overlay" data-drawer-overlay hidden></div>
 
-        <main class="shell-main" id="main-content">
+        <main class="vista-main" id="main-content">
             {% if messages %}
                 <div class="toast-stack" role="status" aria-live="polite">
                     {% for message in messages %}
@@ -131,49 +133,46 @@
             {% block content %}{% endblock %}
         </main>
 
-        <footer class="shell-footer">
-            <p>&copy; {% now "Y" %} OCR Workspace · Alimentat de Django și OCRmyPDF.</p>
+        <footer class="vista-footer">
+            <p>&copy; {% now "Y" %} OCR Vista Flow · Propulsat de Django &amp; OCRmyPDF.</p>
         </footer>
     </div>
 
     <script>
         const themeToggleButton = document.getElementById('theme-toggle-button');
-        const applyTheme = (theme) => {
+
+        function applyTheme(theme) {
             document.documentElement.dataset.theme = theme;
-            if (themeToggleButton) {
-                themeToggleButton.setAttribute('data-theme', theme);
-            }
             try {
                 window.localStorage.setItem('ocr-theme', theme);
             } catch (error) {
-                // Ignoră erorile de stocare
+                // ignore storage failures
             }
-        };
+        }
 
-        (function initializeTheme() {
-            let theme = document.documentElement.dataset.theme || 'light';
+        (function syncInitialTheme() {
+            let active = document.documentElement.dataset.theme || 'light';
             try {
-                const storedTheme = window.localStorage.getItem('ocr-theme');
-                if (storedTheme) {
-                    theme = storedTheme;
+                const stored = window.localStorage.getItem('ocr-theme');
+                if (stored) {
+                    active = stored;
                 }
             } catch (error) {
-                // păstrează tema curentă
+                // ignore
             }
-            applyTheme(theme);
+            applyTheme(active);
         })();
 
         if (themeToggleButton) {
             themeToggleButton.addEventListener('click', () => {
-                const currentTheme = document.documentElement.dataset.theme || 'light';
-                const nextTheme = currentTheme === 'dark' ? 'light' : 'dark';
-                applyTheme(nextTheme);
+                const current = document.documentElement.dataset.theme === 'dark' ? 'dark' : 'light';
+                applyTheme(current === 'dark' ? 'light' : 'dark');
             });
         }
 
         if (window.matchMedia) {
             const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
-            const handlePreferenceChange = (event) => {
+            const handleChange = (event) => {
                 try {
                     if (!window.localStorage.getItem('ocr-theme')) {
                         applyTheme(event.matches ? 'dark' : 'light');
@@ -182,65 +181,85 @@
                     applyTheme(event.matches ? 'dark' : 'light');
                 }
             };
+
             if (mediaQuery.addEventListener) {
-                mediaQuery.addEventListener('change', handlePreferenceChange);
+                mediaQuery.addEventListener('change', handleChange);
             } else if (mediaQuery.addListener) {
-                mediaQuery.addListener(handlePreferenceChange);
+                mediaQuery.addListener(handleChange);
             }
         }
 
-        const navLayer = document.querySelector('[data-nav-layer]');
-        const navDrawer = navLayer ? navLayer.querySelector('.nav-drawer') : null;
-        const navBackdrop = navLayer ? navLayer.querySelector('.nav-layer__backdrop') : null;
-        const navToggle = document.querySelector('[data-nav-toggle]');
-        const navClosers = document.querySelectorAll('[data-nav-close]');
-        let navPreviouslyFocused = null;
+        const drawer = document.querySelector('[data-drawer]');
+        const drawerToggle = document.querySelector('[data-drawer-toggle]');
+        const drawerOverlay = document.querySelector('[data-drawer-overlay]');
+        const drawerCloseButtons = document.querySelectorAll('[data-drawer-close]');
+        const drawerLinks = drawer ? drawer.querySelectorAll('a[href]') : [];
 
-        const openNavigation = () => {
-            if (!navLayer || !navDrawer) return;
-            navPreviouslyFocused = document.activeElement;
-            navLayer.classList.add('is-open');
-            navToggle && navToggle.setAttribute('aria-expanded', 'true');
-            const focusable = navDrawer.querySelector('a, button');
-            if (focusable) {
-                focusable.focus({ preventScroll: true });
+        function openDrawer() {
+            if (!drawer) return;
+            drawer.hidden = false;
+            drawer.classList.add('is-open');
+            if (drawerOverlay) {
+                drawerOverlay.hidden = false;
+                drawerOverlay.classList.add('is-active');
             }
-        };
-
-        const closeNavigation = ({ restoreFocus = true } = {}) => {
-            if (!navLayer || !navDrawer) return;
-            navLayer.classList.remove('is-open');
-            navToggle && navToggle.setAttribute('aria-expanded', 'false');
-            if (restoreFocus && navPreviouslyFocused) {
-                navPreviouslyFocused.focus({ preventScroll: true });
+            if (drawerToggle) {
+                drawerToggle.setAttribute('aria-expanded', 'true');
             }
-        };
+            const firstLink = drawer.querySelector('a, button');
+            if (firstLink) {
+                firstLink.focus({ preventScroll: true });
+            }
+        }
 
-        if (navToggle) {
-            navToggle.addEventListener('click', () => {
-                if (navLayer && navLayer.classList.contains('is-open')) {
-                    closeNavigation();
+        function closeDrawer({ focusToggle = true } = {}) {
+            if (!drawer) return;
+            drawer.classList.remove('is-open');
+            if (drawerOverlay) {
+                drawerOverlay.classList.remove('is-active');
+                setTimeout(() => {
+                    drawerOverlay.hidden = true;
+                }, 200);
+            }
+            if (drawerToggle && focusToggle) {
+                drawerToggle.setAttribute('aria-expanded', 'false');
+                drawerToggle.focus({ preventScroll: true });
+            } else if (drawerToggle) {
+                drawerToggle.setAttribute('aria-expanded', 'false');
+            }
+            setTimeout(() => {
+                drawer.hidden = true;
+            }, 220);
+        }
+
+        if (drawerToggle) {
+            drawerToggle.addEventListener('click', () => {
+                if (!drawer) return;
+                if (drawer.hidden) {
+                    openDrawer();
+                } else if (drawer.classList.contains('is-open')) {
+                    closeDrawer();
                 } else {
-                    openNavigation();
+                    openDrawer();
                 }
             });
         }
 
-        navClosers.forEach((button) => {
-            button.addEventListener('click', () => closeNavigation());
+        drawerCloseButtons.forEach((button) => {
+            button.addEventListener('click', () => closeDrawer());
         });
 
-        if (navLayer && navBackdrop) {
-            navLayer.addEventListener('click', (event) => {
-                if (event.target === navBackdrop) {
-                    closeNavigation();
-                }
-            });
+        drawerLinks.forEach((link) => {
+            link.addEventListener('click', () => closeDrawer({ focusToggle: false }));
+        });
+
+        if (drawerOverlay) {
+            drawerOverlay.addEventListener('click', () => closeDrawer());
         }
 
         document.addEventListener('keydown', (event) => {
-            if (event.key === 'Escape' && navLayer && navLayer.classList.contains('is-open')) {
-                closeNavigation();
+            if (event.key === 'Escape' && drawer && drawer.classList.contains('is-open')) {
+                closeDrawer();
             }
         });
     </script>

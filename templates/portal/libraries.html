@@ -63,7 +63,7 @@
     </aside>
     <section class="library-content">
         {% if folders %}
-            <div class="folder-grid">
+            <div class="library-grid">
                 {% for folder in folders %}
                     <a class="folder-card" href="{% url 'portal:library_detail' folder.id %}">
                         <div class="folder-meta">
